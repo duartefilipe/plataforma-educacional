@@ -24,12 +24,13 @@ Para construir e executar este projeto localmente, você precisará de:
 
 1.  **Banco de Dados:**
     *   Abra o arquivo `src/main/resources/application.properties`.
-    *   Configure as seguintes propriedades com os dados do seu servidor PostgreSQL:
+    *   O repositório já traz algumas configurações de exemplo:
         ```properties
-        spring.datasource.url=jdbc:postgresql://localhost:5432/plataforma_educacional
-        spring.datasource.username=seu_usuario_postgres
-        spring.datasource.password=sua_senha_postgres
+        spring.datasource.url=jdbc:postgresql://192.168.100.109:15432/plataformaeducacional
+        spring.datasource.username=postgres
+        spring.datasource.password=Eunaoseiasenha22
         ```
+    *   Ajuste a URL e as credenciais de acordo com o seu ambiente local.
     *   A propriedade `spring.jpa.hibernate.ddl-auto=update` tentará criar/atualizar o schema do banco de dados automaticamente na inicialização. Para ambientes de produção, considere usar `validate` ou `none` e gerenciar o schema com ferramentas como Flyway ou Liquibase.
 
 2.  **Usuário Administrador Inicial:**
@@ -56,7 +57,7 @@ Para construir e executar este projeto localmente, você precisará de:
     ```bash
     ./mvnw spring-boot:run
     ```
-    A aplicação estará disponível, por padrão, em `http://localhost:8080`.
+    A aplicação estará disponível, por padrão, em `http://localhost:8081`.
 
 Alternativamente, você pode gerar um arquivo JAR executável:
 
@@ -85,7 +86,7 @@ Consulte a classe `SecurityConfig.java` para detalhes sobre as permissões de ca
 
 ## 6. Estrutura do Banco de Dados
 
-Para uma descrição detalhada das tabelas, colunas e relacionamentos, consulte o arquivo `database_schema.md` localizado na raiz do projeto (ou no diretório onde foi gerado).
+As entidades do sistema estão mapeadas via JPA no pacote `br.com.plataformaeducacional.model`. Consulte o código fonte para detalhes de tabelas, colunas e relacionamentos.
 
 ## 7. Limitações Conhecidas (Ambiente de Desenvolvimento/Sandbox)
 
@@ -108,5 +109,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-O frontend estará disponível em `http://localhost:3000` e o backend em `http://localhost:8080`.
+O arquivo `.env` define variáveis como `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, além de chaves opcionais (`OPENAI_API_KEY`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`). Ajuste-as conforme o seu ambiente.
+
+O frontend estará disponível em `http://localhost:3000` e o backend em `http://localhost:8081`.
 
