@@ -167,6 +167,12 @@ public class AtividadeServiceImpl implements AtividadeService {
         return atividade;
     }
 
+    // Método auxiliar para busca sem verificação de professor (uso administrativo)
+    public Atividade findAtividadeById(Long atividadeId) {
+        return atividadeRepository.findById(atividadeId)
+                .orElseThrow(() -> new EntityNotFoundException("Atividade não encontrada com ID: " + atividadeId));
+    }
+
     // Método auxiliar para deletar arquivo físico
     private void deleteArquivoFisico(String caminhoArquivo) throws IOException {
         if (caminhoArquivo != null && !caminhoArquivo.isBlank()) {

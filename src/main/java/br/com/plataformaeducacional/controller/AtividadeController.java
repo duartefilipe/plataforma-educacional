@@ -3,6 +3,7 @@ package br.com.plataformaeducacional.controller;
 import br.com.plataformaeducacional.dto.AtividadeDTO;
 import br.com.plataformaeducacional.entity.Atividade;
 import br.com.plataformaeducacional.entity.User;
+import br.com.plataformaeducacional.enums.Role;
 import br.com.plataformaeducacional.service.AtividadeService;
 import br.com.plataformaeducacional.service.AtividadeServiceImpl; // Import implementation for potential download logic
 import jakarta.validation.Valid;
@@ -96,7 +97,12 @@ public class AtividadeController {
             @AuthenticationPrincipal User user) throws IOException {
         Long professorId = user.getId();
         // Reutiliza a lógica de busca e verificação de permissão
-        Atividade atividade = atividadeServiceImpl.findAtividadeByIdAndProfessor(id, professorId);
+        Atividade atividade;
+        if (user.getRole() == Role.ADMIN) {
+            atividade = atividadeServiceImpl.findAtividadeById(id);
+        } else {
+            atividade = atividadeServiceImpl.findAtividadeByIdAndProfessor(id, professorId);
+        }
 
         if (atividade.getCaminhoArquivo() == null || atividade.getCaminhoArquivo().isBlank()) {
             return ResponseEntity.notFound().build();
