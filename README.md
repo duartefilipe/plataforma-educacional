@@ -96,3 +96,17 @@ Para uma descrição detalhada das tabelas, colunas e relacionamentos, consulte 
 ---
 
 Este README fornece uma visão geral e instruções básicas. Para detalhes específicos sobre a implementação, consulte o código-fonte e os comentários nas classes relevantes.
+
+## 8. Docker e Frontend
+
+Um diretório `frontend/` com um esqueleto de aplicação React foi incluído neste repositório. O backend e o frontend possuem `Dockerfile` dedicados e um `docker-compose.yml` simplifica a execução de ambos os serviços juntamente com o banco PostgreSQL.
+
+Para iniciar tudo com Docker, copie o arquivo `.env.example` para `.env` e execute:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+O frontend estará disponível em `http://localhost:3000` e o backend em `http://localhost:8080`.
+
