@@ -2,6 +2,7 @@ package br.com.plataformaeducacional.config;
 
 import br.com.plataformaeducacional.enums.Role;
 import br.com.plataformaeducacional.service.UserDetailsServiceImpl;
+import br.com.plataformaeducacional.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,11 +47,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable) // Desabilitar CSRF para simplificar (considerar habilitar/configurar para produção)
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                // Permitir acesso público a endpoints específicos (ex: login, registro - a serem criados)
-                // .requestMatchers("/api/auth/**").permitAll()
-                // .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
                 // Restrições de Admin (exemplo)
                 .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
@@ -74,15 +74,9 @@ public class SecurityConfig {
                 // Qualquer outra requisição precisa estar autenticada
                 .anyRequest().authenticated()
             )
-            // Configuração de Login (pode ser formLogin, httpBasic, ou JWT - usando formLogin por padrão)
-            .formLogin(form -> form
-                // .loginPage("/login") // Página de login customizada (se houver frontend)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .permitAll()
-            )
-            .authenticationProvider(authenticationProvider()); // Define o provider customizado
+            .sessionManagement(sess -> sess.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
