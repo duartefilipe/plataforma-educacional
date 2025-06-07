@@ -35,8 +35,9 @@ public class JwtTokenUtil {
     }
 
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
@@ -44,7 +45,7 @@ public class JwtTokenUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(getSigningKey()).parse(token);
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
