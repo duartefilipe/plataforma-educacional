@@ -1,25 +1,51 @@
 version: '3.8'
+
 services:
-  db:
-    image: postgres:15
+  postgres:
+    image: postgres:latest
+    container_name: postgres-db
     environment:
-      POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "15432:5432"
+    volumes:
+      - /home/anakin/Desenvolvimento/Docker-Compose/PostgreSQL:/var/lib/postgresql/data
+    networks:
+      - postgres-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "filipeduarte.si@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres
+    networks:
+      - postgres-network
+
   backend:
     build: .
     environment:
-      DB_HOST: db
+      DB_HOST: postgres
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - postgres
+    networks:
+      - postgres-network
+
   frontend:
     build: ./frontend
     environment:
@@ -28,3 +54,9 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - postgres-network
+
+networks:
+  postgres-network:
+    driver: bridge
