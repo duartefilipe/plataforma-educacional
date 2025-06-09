@@ -1,7 +1,7 @@
 package br.com.plataformaeducacional.controller;
 
-import br.com.plataformaeducacional.dto.UserCreateRequestDTO;
-import br.com.plataformaeducacional.dto.UserResponseDTO;
+import br.com.plataformaeducacional.dto.request.UserCreateRequestDTO;
+import br.com.plataformaeducacional.dto.response.UserResponseDTO;
 import br.com.plataformaeducacional.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
