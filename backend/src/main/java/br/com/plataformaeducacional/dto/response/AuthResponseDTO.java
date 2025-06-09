@@ -1,4 +1,4 @@
-package br.com.plataformaeducacional.dto;
+package br.com.plataformaeducacional.dto.response;
 
 public class AuthResponseDTO {
     private String token;
