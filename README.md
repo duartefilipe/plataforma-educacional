@@ -17,7 +17,7 @@ Este projeto implementa uma plataforma web educacional utilizando Spring Boot e 
 Para construir e executar este projeto localmente, você precisará de:
 
 *   **Java Development Kit (JDK) 17 ou superior:** Certifique-se de que a variável de ambiente `JAVA_HOME` esteja configurada corretamente.
-*   **Apache Maven:** Utilizado para gerenciamento de dependências e build do projeto. O projeto inclui o Maven Wrapper (`mvnw`), que pode baixar o Maven automaticamente se necessário.
+*   **Apache Maven:** Utilizado para gerenciamento de dependências e build do projeto. O projeto inclui o Maven Wrapper (`mvnw`), que pode baixar o Maven automaticamente se necessário. Em ambientes sem acesso à internet, é necessário ter o Maven previamente instalado para que o build seja executado.
 *   **PostgreSQL:** Banco de dados relacional utilizado para persistência. Crie um banco de dados (ex: `plataforma_educacional`).
 
 ## 3. Configuração
