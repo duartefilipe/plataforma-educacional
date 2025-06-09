@@ -1,4 +1,4 @@
-package br.com.plataformaeducacional.dto;
+package br.com.plataformaeducacional.dto.request;
 
 public class AuthRequestDTO {
     private String email;
