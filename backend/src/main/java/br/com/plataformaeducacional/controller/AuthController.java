@@ -1,39 +1,48 @@
 package br.com.plataformaeducacional.controller;
 
 import br.com.plataformaeducacional.dto.request.AuthRequestDTO;
-import br.com.plataformaeducacional.dto.response.AuthResponseDTO;
 import br.com.plataformaeducacional.entity.User;
+import br.com.plataformaeducacional.repository.UserRepository;
 import br.com.plataformaeducacional.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequestDTO request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha()));
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail()).orElse(null);
 
-            User user = (User) authentication.getPrincipal();
-            String token = jwtTokenUtil.generateToken(user);
-            return ResponseEntity.ok(new AuthResponseDTO(token, user.getNomeCompleto(), user.getRole().name()));
-        } catch (AuthenticationException e) {
+        if (user == null || !passwordEncoder.matches(dto.getSenha(), user.getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
+
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getSenha())
+                .roles(user.getRole().name())
+                .build();
+
+        String token = jwtTokenUtil.generateToken(userDetails);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("role", user.getRole().name());
+
+        return ResponseEntity.ok(response);
     }
 }

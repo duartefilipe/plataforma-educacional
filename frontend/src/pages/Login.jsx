@@ -12,12 +12,17 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post('/api/auth/login', { email, senha });
+
       const { token, role } = response.data;
+
+      if (!token || !role) {
+        alert('Credenciais inválidas.');
+        return;
+      }
 
       localStorage.setItem('token', token);
       alert('Login realizado com sucesso!');
 
-      // Redireciona baseado no papel
       if (role === 'ADMIN') navigate('/admin');
       else if (role === 'PROFESSOR') navigate('/professor');
       else if (role === 'ALUNO') navigate('/aluno');
@@ -25,6 +30,7 @@ function Login() {
     } catch (err) {
       alert('Erro ao fazer login. Verifique as credenciais.');
     }
+
   };
 
   return (
