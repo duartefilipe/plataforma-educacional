@@ -1,0 +1,11 @@
+# pack-refs with: peeled fully-peeled sorted 
+0489ce801fb8b11953becaa13360867d5a88299f refs/remotes/origin/8t8fxo-codex/validate-and-implement-educational-project-system
+ddc6ad0046db8791f2daf1518ab915ccb61157f3 refs/remotes/origin/backup-local
+7e21038fe7a0d05a274f9b52dd6e997bcde53457 refs/remotes/origin/codex/find-and-fix-a-bug-in-the-codebase
+2b061337f0160e7a1532d78c96338d868d403e68 refs/remotes/origin/codex/fix-undefined-method-error-in-jwttokenutil
+13b9d4b2423c884834dbf5df2e92ac5f394f8fe7 refs/remotes/origin/codex/generate-full-educational-system-project
+2bf3285f9bf94180297815515df59a9a06358e56 refs/remotes/origin/codex/revisar-coerência-do-readme
+b4035ebfbc0ce5a8352d8c49d53109b9430f5ae0 refs/remotes/origin/codex/revise-classe-jwttokenutil-para-corrigir-erro
+36e383b2a0c3f47930374119488a4f8604067629 refs/remotes/origin/codex/validate-and-implement-educational-project-system
+6d0a80310ccb10ffa459f3adba1d7cd0742fface refs/remotes/origin/main
+ddc6ad0046db8791f2daf1518ab915ccb61157f3 refs/remotes/origin/minha-versao-final
