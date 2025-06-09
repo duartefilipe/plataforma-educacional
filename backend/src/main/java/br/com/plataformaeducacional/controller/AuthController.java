@@ -1,7 +1,7 @@
 package br.com.plataformaeducacional.controller;
 
-import br.com.plataformaeducacional.dto.AuthRequestDTO;
-import br.com.plataformaeducacional.dto.AuthResponseDTO;
+import br.com.plataformaeducacional.dto.request.AuthRequestDTO;
+import br.com.plataformaeducacional.dto.response.AuthResponseDTO;
 import br.com.plataformaeducacional.entity.User;
 import br.com.plataformaeducacional.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
