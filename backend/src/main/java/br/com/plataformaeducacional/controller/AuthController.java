@@ -5,10 +5,12 @@ import br.com.plataformaeducacional.dto.AuthResponseDTO;
 import br.com.plataformaeducacional.entity.User;
 import br.com.plataformaeducacional.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,20 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha()));
 
-            User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
-
-            String token = jwtService.generateToken(user);
-            return ResponseEntity.ok(new LoginResponse(token, user.getRole().name()));
+            User user = (User) authentication.getPrincipal();
+            String token = jwtTokenUtil.generateToken(user);
+            return ResponseEntity.ok(new AuthResponseDTO(token, user.getNomeCompleto(), user.getRole().name()));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
