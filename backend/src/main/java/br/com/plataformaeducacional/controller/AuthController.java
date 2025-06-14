@@ -3,11 +3,9 @@ package br.com.plataformaeducacional.controller;
 import br.com.plataformaeducacional.dto.request.AuthRequestDTO;
 import br.com.plataformaeducacional.entity.User;
 import br.com.plataformaeducacional.repository.UserRepository;
-import br.com.plataformaeducacional.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +19,6 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO dto) {
@@ -31,17 +28,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getSenha())
-                .roles(user.getRole().name())
-                .build();
-
-        String token = jwtTokenUtil.generateToken(userDetails);
-
         Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
+        response.put("message", "Login realizado com sucesso");
         response.put("role", user.getRole().name());
+        response.put("email", user.getEmail());
+        response.put("id", user.getId());
 
         return ResponseEntity.ok(response);
     }

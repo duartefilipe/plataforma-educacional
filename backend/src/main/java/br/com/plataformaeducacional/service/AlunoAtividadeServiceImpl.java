@@ -33,7 +33,7 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
     private final AlunoRepository alunoRepository;
 
     // Diretório para respostas de alunos. Idealmente, viria de application.properties
-    private final Path respostaStorageLocation = Paths.get("/home/ubuntu/plataforma-uploads/respostas-alunos").toAbsolutePath().normalize();
+    private final Path respostaStorageLocation = Paths.get("uploads/respostas-alunos").toAbsolutePath().normalize();
 
 {
     try {
