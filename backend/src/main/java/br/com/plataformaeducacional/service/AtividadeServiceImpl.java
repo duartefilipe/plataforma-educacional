@@ -28,7 +28,7 @@ public class AtividadeServiceImpl implements AtividadeService {
     private final AtividadeRepository atividadeRepository;
     private final ProfessorRepository professorRepository;
 
-    private final Path fileStorageLocation = Paths.get("/home/ubuntu/plataforma-uploads/atividades").toAbsolutePath().normalize();
+    private final Path fileStorageLocation = Paths.get("uploads/atividades").toAbsolutePath().normalize();
 
     {
         try {
