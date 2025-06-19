@@ -5,14 +5,31 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProfessorDashboard from './pages/ProfessorDashboard';
 import AlunoDashboard from './pages/AlunoDashboard';
 import NotFound from './pages/NotFound';
+import CadastrarProfessor from './pages/CadastrarProfessor';
+import CadastrarAluno from './pages/CadastrarAluno';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/professor" element={<ProfessorDashboard />} />
-      <Route path="/aluno" element={<AlunoDashboard />} />
+      <Route path="/admin" element={
+        <PrivateRoute role="ADMIN">
+          <AdminDashboard />
+        </PrivateRoute>
+      } />
+      <Route path="/professor" element={
+        <PrivateRoute role="PROFESSOR">
+          <ProfessorDashboard />
+        </PrivateRoute>
+      } />
+      <Route path="/aluno" element={
+        <PrivateRoute role="ALUNO">
+          <AlunoDashboard />
+        </PrivateRoute>
+      } />
+      <Route path="/cadastrar-professor" element={<CadastrarProfessor />} />
+      <Route path="/cadastrar-aluno" element={<CadastrarAluno />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
