@@ -12,40 +12,35 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    // Verificar se há dados de usuário no localStorage ao carregar a página
-    const email = localStorage.getItem('email');
-    const role = localStorage.getItem('role');
-    const id = localStorage.getItem('id');
-
-    if (email && role && id) {
-      setUser({ email, role, id });
+    // Tenta carregar dados do usuário se um token existir
+    const storedUser = localStorage.getItem('user');
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-    setLoading(false);
-  }, []);
+  }, [token]);
 
   const login = (userData) => {
-    const { email, role, id } = userData;
-    localStorage.setItem('email', email);
-    localStorage.setItem('role', role);
-    localStorage.setItem('id', id);
-    setUser({ email, role, id });
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify({ email: userData.email, role: userData.role, id: userData.id }));
+    setToken(userData.token);
+    setUser({ email: userData.email, role: userData.role, id: userData.id });
   };
 
   const logout = () => {
-    localStorage.removeItem('email');
-    localStorage.removeItem('role');
-    localStorage.removeItem('id');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
     setUser(null);
   };
 
   const value = {
     user,
+    token,
     login,
     logout,
-    loading
   };
 
   return (

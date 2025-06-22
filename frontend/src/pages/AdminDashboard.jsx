@@ -1,24 +1,19 @@
 import React from 'react';
-import { Button, Container, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { Typography, Container, Paper } from '@mui/material';
 
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-
-  console.log('Renderizando AdminDashboard');
-
-  const handleCadastrarProfessor = () => {
-    console.log('Navegando para cadastro de professor');
-    navigate('/cadastrar-professor');
-  };
-
-  const handleCadastrarAluno = () => {
-    console.log('Navegando para cadastro de aluno');
-    navigate('/cadastrar-aluno');
-  };
-
+function AdminDashboard() {
   return (
-    <div style={{ color: 'red', fontSize: 32 }}>PAINEL ADMIN TESTE</div>
+    <Container maxWidth="lg" style={{ marginTop: '2rem' }}>
+      <Paper elevation={3} style={{ padding: '2rem' }}>
+        <Typography variant="h4" gutterBottom>
+          Bem-vindo ao Painel do Administrador
+        </Typography>
+        <Typography variant="body1">
+          Utilize a barra de navegação acima para gerenciar os cadastros e listagens do sistema.
+        </Typography>
+      </Paper>
+    </Container>
   );
 }
+
+export default AdminDashboard; 
