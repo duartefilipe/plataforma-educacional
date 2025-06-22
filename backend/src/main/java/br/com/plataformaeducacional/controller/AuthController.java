@@ -1,13 +1,20 @@
 package br.com.plataformaeducacional.controller;
 
 import br.com.plataformaeducacional.dto.request.AuthRequestDTO;
+import br.com.plataformaeducacional.dto.response.AuthResponseDTO;
 import br.com.plataformaeducacional.entity.User;
 import br.com.plataformaeducacional.repository.UserRepository;
+import br.com.plataformaeducacional.security.JwtTokenUtil;
+import br.com.plataformaeducacional.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,32 +30,37 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO dto) {
-        logger.info("Tentativa de login para o email: {}", dto.getEmail());
-        User user = userRepository.findByEmail(dto.getEmail()).orElse(null);
+        try {
+            logger.info("Tentativa de login para o email: {}", dto.getEmail());
+            
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getSenha())
+            );
 
-        if (user == null) {
-            logger.warn("Usuário não encontrado para o email: {}", dto.getEmail());
+            User user = (User) authentication.getPrincipal();
+
+            final String token = jwtTokenUtil.generateToken(user);
+            
+            AuthResponseDTO response = new AuthResponseDTO(
+                token, 
+                user.getId(), 
+                user.getNomeCompleto(), 
+                user.getEmail(),
+                user.getRole().name()
+            );
+
+            logger.info("Login realizado com sucesso para o email: {}", dto.getEmail());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Erro na autenticação para o email: {}", dto.getEmail(), e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
-
-        boolean senhaCorreta = passwordEncoder.matches(dto.getSenha(), user.getSenha());
-        logger.info("Senha informada: {} | Hash no banco: {} | Resultado: {}", dto.getSenha(), user.getSenha(), senhaCorreta);
-
-        if (!senhaCorreta) {
-            logger.warn("Senha incorreta para o email: {}", dto.getEmail());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
-        }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Login realizado com sucesso");
-        response.put("role", user.getRole().name());
-        response.put("email", user.getEmail());
-        response.put("id", user.getId());
-
-        logger.info("Login realizado com sucesso para o email: {}", dto.getEmail());
-        return ResponseEntity.ok(response);
     }
 }

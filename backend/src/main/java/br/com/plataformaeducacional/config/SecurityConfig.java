@@ -15,29 +15,26 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import br.com.plataformaeducacional.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean
@@ -51,26 +48,18 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/error", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                        .requestMatchers("/api/escolas/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/api/escolas/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/escolas/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.DELETE, "/api/escolas/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/api/professores/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/professores/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.DELETE, "/api/professores/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/api/alunos/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/alunos/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.DELETE, "/api/alunos/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers("/api/professor/**").hasAnyRole(Role.PROFESSOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/atividades/**").hasAnyRole(Role.PROFESSOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/atividades/compartilhar/**").hasAnyRole(Role.PROFESSOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/aluno/**").hasAnyRole(Role.ALUNO.name(), Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults()) // login padrão com username/senha
-                .authenticationProvider(authenticationProvider());
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -43,7 +43,6 @@ public class Professor {
 
     public Professor(User user, String disciplinas) {
         this.user = user;
-        this.userId = user.getId();
         this.disciplinas = disciplinas;
     }
 

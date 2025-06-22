@@ -50,12 +50,8 @@ public class Aluno {
     // @OneToMany(mappedBy = "aluno")
     // private Set<DesignacaoAtividade> atividadesDesignadas;
 
-    public Aluno(User user, LocalDate dataNascimento, String nomeResponsavel, String contatoResponsavel) {
+    public Aluno(User user) {
         this.user = user;
-        this.userId = user.getId();
-        this.dataNascimento = dataNascimento;
-        this.nomeResponsavel = nomeResponsavel;
-        this.contatoResponsavel = contatoResponsavel;
     }
 
     // Métodos utilitários para gerenciar matrículas (opcional, mas útil)

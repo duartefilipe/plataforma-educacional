@@ -5,6 +5,7 @@ public class UserCreateRequestDTO {
     private String email;
     private String senha;
     private String role;
+    private Long escolaId;
 
     public String getNomeCompleto() {
         return nomeCompleto;
@@ -36,5 +37,13 @@ public class UserCreateRequestDTO {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Long getEscolaId() {
+        return escolaId;
+    }
+
+    public void setEscolaId(Long escolaId) {
+        this.escolaId = escolaId;
     }
 }

@@ -4,6 +4,7 @@ import br.com.plataformaeducacional.dto.request.UserCreateRequestDTO;
 import br.com.plataformaeducacional.dto.response.UserResponseDTO;
 import br.com.plataformaeducacional.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> create(@RequestBody UserCreateRequestDTO request) {
-        return ResponseEntity.ok(userService.create(request));
+    public ResponseEntity<?> createUser(@RequestBody UserCreateRequestDTO userDTO) {
+        try {
+            userService.createUser(userDTO);
+            return new ResponseEntity<>("Usuário criado com sucesso", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping
