@@ -1,132 +1,135 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Typography, Paper, Container, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Switch, FormControlLabel, Box, CircularProgress } from '@mui/material';
 import api from '../api/axiosConfig';
 
-const UserForm = ({ role, title, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    email: '',
-    senha: '',
-    role: role,
-    escolaId: ''
-  });
-  const [escolas, setEscolas] = useState([]);
-  const [error, setError] = useState('');
-  const isEdit = !!initialData;
+const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
+    // Estados do formulário
+    const [nomeCompleto, setNomeCompleto] = useState('');
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [role, setRole] = useState('ALUNO');
+    const [ativo, setAtivo] = useState(true);
+    const [escolaId, setEscolaId] = useState('');
+    const [turmaId, setTurmaId] = useState('');
 
-  useEffect(() => {
-    if (role === 'PROFESSOR') {
-      const fetchEscolas = async () => {
-        try {
-          const response = await api.get('/escolas');
-          setEscolas(response.data);
-        } catch (err) {
-          console.error('Erro ao buscar escolas', err);
+    // Estados para dados de suporte (escolas, turmas)
+    const [escolas, setEscolas] = useState([]);
+    const [turmas, setTurmas] = useState([]);
+    const [loadingTurmas, setLoadingTurmas] = useState(false);
+
+    // Efeito para popular o formulário com dados iniciais (na edição)
+    useEffect(() => {
+        if (isEdit && initialData) {
+            setNomeCompleto(initialData.nomeCompleto || '');
+            setEmail(initialData.email || '');
+            setRole(initialData.role || 'ALUNO');
+            setAtivo(initialData.ativo !== undefined ? initialData.ativo : true);
+            setEscolaId(initialData.escolaId || '');
+            setTurmaId(initialData.turmaId || '');
         }
-      };
-      fetchEscolas();
-    }
-  }, [role]);
+    }, [isEdit, initialData]);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        nomeCompleto: initialData.nomeCompleto || '',
-        email: initialData.email || '',
-        senha: '',
-        role: initialData.role || role,
-        escolaId: initialData.escolaId || '' 
-      });
-    }
-  }, [initialData, role]);
+    // Efeito para buscar escolas quando o perfil for Professor ou Aluno (na criação)
+    useEffect(() => {
+        if (!isEdit && (role === 'PROFESSOR' || role === 'ALUNO')) {
+            api.get('/escolas')
+                .then(response => setEscolas(response.data))
+                .catch(error => console.error("Erro ao buscar escolas", error));
+        }
+    }, [isEdit, role]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    // Efeito para buscar as turmas da escola do aluno (na edição)
+    useEffect(() => {
+        if (isEdit && role === 'ALUNO' && escolaId) {
+            setLoadingTurmas(true);
+            api.get(`/turmas?escolaId=${escolaId}`)
+                .then(response => {
+                    setTurmas(response.data);
+                })
+                .catch(error => console.error("Erro ao buscar turmas da escola", error))
+                .finally(() => setLoadingTurmas(false));
+        } else {
+            setTurmas([]);
+        }
+    }, [isEdit, role, escolaId]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.nomeCompleto || !formData.email || (!isEdit && !formData.senha)) {
-      setError('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    if (role === 'PROFESSOR' && !formData.escolaId) {
-      setError('Por favor, selecione uma escola para o professor.');
-      return;
-    }
-    setError('');
-    onSubmit(formData);
-  };
 
-  return (
-    <Container maxWidth="sm" style={{ marginTop: '2rem' }}>
-      <Paper elevation={3} style={{ padding: '2rem' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {title}
-        </Typography>
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const userData = { nomeCompleto, email, role, ativo, senha, escolaId };
+        
+        if (role === 'ALUNO') {
+            userData.turmaId = turmaId || null; // Envia null se desvinculado
+        }
+        
+        // Remove a senha do payload se não for preenchida na edição
+        if (isEdit && !senha) {
+            delete userData.senha;
+        }
+
+        onSubmit(userData);
+    };
+
+    const showEscolaSelect = role === 'PROFESSOR' || role === 'ALUNO';
+
+    return (
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="Nome Completo"
-            name="nomeCompleto"
-            value={formData.nomeCompleto}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            required
-          />
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            required
-          />
-          <TextField
-            label={isEdit ? "Nova Senha (deixe em branco para não alterar)" : "Senha"}
-            name="senha"
-            type="password"
-            value={formData.senha}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            required={!isEdit}
-          />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <TextField label="Nome Completo" value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} required fullWidth />
+                <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
+                <TextField label="Senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder={isEdit ? "Deixe em branco para não alterar" : ""} required={!isEdit} fullWidth />
 
-          {role === 'PROFESSOR' && (
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel id="escola-select-label">Escola</InputLabel>
-              <Select
-                labelId="escola-select-label"
-                name="escolaId"
-                value={formData.escolaId}
-                onChange={handleChange}
-                label="Escola"
-              >
-                <MenuItem value="">
-                  <em>Selecione uma escola</em>
-                </MenuItem>
-                {escolas.map((escola) => (
-                  <MenuItem key={escola.id} value={escola.id}>
-                    {escola.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+                {!isEdit && (
+                    <FormControl fullWidth required>
+                        <InputLabel>Perfil</InputLabel>
+                        <Select value={role} label="Perfil" onChange={(e) => setRole(e.target.value)}>
+                            <MenuItem value="ALUNO">Aluno</MenuItem>
+                            <MenuItem value="PROFESSOR">Professor</MenuItem>
+                            <MenuItem value="ADMIN">Admin</MenuItem>
+                        </Select>
+                    </FormControl>
+                )}
 
-          {error && <Typography color="error">{error}</Typography>}
-          
-          <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: '1rem' }}>
-            {isEdit ? 'Atualizar' : 'Criar'}
-          </Button>
+                {showEscolaSelect && (
+                    <FormControl fullWidth required>
+                        <InputLabel>Escola</InputLabel>
+                        <Select value={escolaId} label="Escola" onChange={(e) => setEscolaId(e.target.value)} disabled={isEdit}>
+                             {isEdit && initialData?.escolaNome ? 
+                                <MenuItem key={initialData.escolaId} value={initialData.escolaId}>{initialData.escolaNome}</MenuItem> 
+                                : 
+                                escolas.map((escola) => (
+                                    <MenuItem key={escola.id} value={escola.id}>{escola.nome}</MenuItem>
+                                ))
+                             }
+                        </Select>
+                    </FormControl>
+                )}
+
+                {isEdit && role === 'ALUNO' && (
+                    <FormControl fullWidth>
+                        <InputLabel>Turma</InputLabel>
+                        <Select value={turmaId} label="Turma" onChange={(e) => setTurmaId(e.target.value)} disabled={loadingTurmas}>
+                            <MenuItem value=""><em>Nenhuma / Desvincular</em></MenuItem>
+                            {loadingTurmas ? 
+                                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><CircularProgress size={24} /></Box> :
+                                turmas.map((turma) => (
+                                    <MenuItem key={turma.id} value={turma.id}>{turma.nome} - {turma.anoLetivo}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+                )}
+
+                {isEdit && (
+                    <FormControlLabel control={<Switch checked={ativo} onChange={(e) => setAtivo(e.target.checked)} />} label="Ativo" />
+                )}
+
+                <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
+                    {isEdit ? 'Salvar Alterações' : 'Cadastrar'}
+                </Button>
+            </Box>
         </form>
-      </Paper>
-    </Container>
-  );
+    );
 };
 
-export default UserForm; 
+export default UserForm;

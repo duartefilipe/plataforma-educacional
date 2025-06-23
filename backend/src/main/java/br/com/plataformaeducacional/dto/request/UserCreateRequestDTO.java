@@ -6,6 +6,7 @@ public class UserCreateRequestDTO {
     private String senha;
     private String role;
     private Long escolaId;
+    private Long turmaId;
 
     public String getNomeCompleto() {
         return nomeCompleto;
@@ -45,5 +46,13 @@ public class UserCreateRequestDTO {
 
     public void setEscolaId(Long escolaId) {
         this.escolaId = escolaId;
+    }
+
+    public Long getTurmaId() {
+        return turmaId;
+    }
+
+    public void setTurmaId(Long turmaId) {
+        this.turmaId = turmaId;
     }
 }

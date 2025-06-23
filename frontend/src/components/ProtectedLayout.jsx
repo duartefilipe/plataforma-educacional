@@ -1,25 +1,24 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from './Navbar';
 
-export default function ProtectedLayout({ role }) {
-  const { user } = useAuth();
+const ProtectedLayout = ({ children }) => {
+    const { user, loading } = useAuth();
 
-  if (!user) {
-    // Se não estiver logado, redireciona para a página de login
-    return <Navigate to="/" />;
-  }
+    if (loading) {
+        return <div>Carregando...</div>;
+    }
 
-  if (role && user.role !== role) {
-    // Se estiver logado, mas não tiver a role correta, redireciona para o login
-    // Em uma aplicação real, poderia redirecionar para uma página de "não autorizado"
-    return <Navigate to="/" />;
-  }
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
 
-  // Se estiver logado e tiver a role correta, renderiza o conteúdo da rota
-  return (
-    <>
-      <Outlet />
-    </>
-  );
-} 
+    return (
+        <>
+            {children}
+        </>
+    );
+};
+
+export default ProtectedLayout; 

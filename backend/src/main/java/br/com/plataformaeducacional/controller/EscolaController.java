@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/escolas")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class EscolaController {
 
     private static final Logger logger = LoggerFactory.getLogger(EscolaController.class);
@@ -24,29 +23,36 @@ public class EscolaController {
     private final EscolaService escolaService;
 
     @PostMapping
-    public ResponseEntity<EscolaDTO> criarEscola(@Valid @RequestBody EscolaDTO escolaDTO) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EscolaDTO> createEscola(@RequestBody @Valid EscolaDTO escolaDTO) {
         logger.info("Recebido DTO para criar escola: {}", escolaDTO);
-        return new ResponseEntity<>(escolaService.criarEscola(escolaDTO), HttpStatus.CREATED);
+        return new ResponseEntity<>(escolaService.createEscola(escolaDTO), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<EscolaDTO>> listarEscolas() {
-        return ResponseEntity.ok(escolaService.listarEscolas());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<EscolaDTO>> getAllEscolas() {
+        return ResponseEntity.ok(escolaService.getAllEscolas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EscolaDTO> buscarEscolaPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(escolaService.buscarEscolaPorId(id));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EscolaDTO> getEscolaById(@PathVariable Long id) {
+        return escolaService.getEscolaById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EscolaDTO> atualizarEscola(@PathVariable Long id, @Valid @RequestBody EscolaDTO escolaDTO) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EscolaDTO> updateEscola(@PathVariable Long id, @RequestBody @Valid EscolaDTO escolaDTO) {
         return ResponseEntity.ok(escolaService.atualizarEscola(id, escolaDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarEscola(@PathVariable Long id) {
-        escolaService.deletarEscola(id);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteEscola(@PathVariable Long id) {
+        escolaService.deleteEscola(id);
         return ResponseEntity.noContent().build();
     }
 } 

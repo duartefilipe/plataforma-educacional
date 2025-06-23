@@ -49,11 +49,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
-                        .requestMatchers("/api/escolas/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll() // Para H2 console, etc., se houver.
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))

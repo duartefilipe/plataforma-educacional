@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,50 +20,43 @@ public class EscolaServiceImpl implements EscolaService {
     private final EscolaRepository escolaRepository;
 
     @Override
-    @Transactional
-    public EscolaDTO criarEscola(EscolaDTO escolaDTO) {
+    public EscolaDTO createEscola(EscolaDTO escolaDTO) {
         Escola escola = new Escola();
-        BeanUtils.copyProperties(escolaDTO, escola, "id");
-        Escola savedEscola = escolaRepository.save(escola);
-        return convertToDTO(savedEscola);
+        BeanUtils.copyProperties(escolaDTO, escola);
+        escola = escolaRepository.save(escola);
+        escolaDTO.setId(escola.getId());
+        return escolaDTO;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<EscolaDTO> listarEscolas() {
-        return escolaRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<EscolaDTO> getAllEscolas() {
+        return escolaRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public EscolaDTO buscarEscolaPorId(Long id) {
-        Escola escola = escolaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Escola não encontrada com ID: " + id));
-        return convertToDTO(escola);
+    public Optional<EscolaDTO> getEscolaById(Long id) {
+        return escolaRepository.findById(id).map(this::toDTO);
     }
 
     @Override
-    @Transactional
     public EscolaDTO atualizarEscola(Long id, EscolaDTO escolaDTO) {
-        Escola escolaExistente = escolaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Escola não encontrada para atualização com ID: " + id));
-        BeanUtils.copyProperties(escolaDTO, escolaExistente, "id", "createdAt", "updatedAt");
-        Escola updatedEscola = escolaRepository.save(escolaExistente);
-        return convertToDTO(updatedEscola);
+        Escola escola = escolaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Escola não encontrada com o id: " + id));
+
+        escola.setNome(escolaDTO.getNome());
+        escola.setEmailContato(escolaDTO.getEmailContato());
+        escola.setTelefone(escolaDTO.getTelefone());
+
+        Escola escolaAtualizada = escolaRepository.save(escola);
+        return toDTO(escolaAtualizada);
     }
 
     @Override
-    @Transactional
-    public void deletarEscola(Long id) {
-        if (!escolaRepository.existsById(id)) {
-            throw new EntityNotFoundException("Escola não encontrada para exclusão com ID: " + id);
-        }
+    public void deleteEscola(Long id) {
         escolaRepository.deleteById(id);
     }
 
-    private EscolaDTO convertToDTO(Escola escola) {
+    private EscolaDTO toDTO(Escola escola) {
         EscolaDTO dto = new EscolaDTO();
         BeanUtils.copyProperties(escola, dto);
         return dto;

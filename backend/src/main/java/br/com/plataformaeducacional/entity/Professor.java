@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.AllArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,16 +15,16 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@AllArgsConstructor
 public class Professor {
 
     @Id
     @EqualsAndHashCode.Include
-    private Long userId;
+    private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // Maps the userId field to the User's ID
-    @JoinColumn(name = "user_id")
-    @ToString.Exclude // Evitar recursão
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
     private User user;
 
     @Column(columnDefinition = "TEXT")
@@ -46,6 +47,10 @@ public class Professor {
         this.disciplinas = disciplinas;
     }
 
+    public Professor(User user) {
+        this.user = user;
+    }
+
     // Métodos utilitários para gerenciar lotações (opcional, mas útil)
     public void addLotacao(LotacaoProfessor lotacao) {
         lotacoes.add(lotacao);
@@ -55,6 +60,10 @@ public class Professor {
     public void removeLotacao(LotacaoProfessor lotacao) {
         lotacoes.remove(lotacao);
         lotacao.setProfessor(null);
+    }
+
+    public Long getUserId() {
+        return this.user != null ? this.user.getId() : null;
     }
 }
 

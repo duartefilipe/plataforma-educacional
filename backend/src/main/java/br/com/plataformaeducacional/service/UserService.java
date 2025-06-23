@@ -12,4 +12,5 @@ public interface UserService {
     UserResponseDTO update(Long id, UserCreateRequestDTO dto);
     void delete(Long id);
     void createUser(UserCreateRequestDTO userDTO);
+    List<UserResponseDTO> getProfessoresByEscola(Long escolaId);
 }

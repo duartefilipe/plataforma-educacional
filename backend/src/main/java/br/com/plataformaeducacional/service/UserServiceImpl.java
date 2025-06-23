@@ -13,7 +13,12 @@ import br.com.plataformaeducacional.repository.EscolaRepository;
 import br.com.plataformaeducacional.repository.LotacaoProfessorRepository;
 import br.com.plataformaeducacional.entity.LotacaoProfessor;
 import br.com.plataformaeducacional.entity.Escola;
+import br.com.plataformaeducacional.entity.MatriculaAluno;
+import br.com.plataformaeducacional.repository.MatriculaAlunoRepository;
+import br.com.plataformaeducacional.repository.TurmaRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,28 +27,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ProfessorRepository professorRepository;
     private final AlunoRepository alunoRepository;
     private final EscolaRepository escolaRepository;
     private final LotacaoProfessorRepository lotacaoProfessorRepository;
-
-    public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           ProfessorRepository professorRepository,
-                           AlunoRepository alunoRepository,
-                           EscolaRepository escolaRepository,
-                           LotacaoProfessorRepository lotacaoProfessorRepository) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.professorRepository = professorRepository;
-        this.alunoRepository = alunoRepository;
-        this.escolaRepository = escolaRepository;
-        this.lotacaoProfessorRepository = lotacaoProfessorRepository;
-    }
+    private final MatriculaAlunoRepository matriculaAlunoRepository;
+    private final TurmaRepository turmaRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -57,26 +51,28 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         handleRoleSpecificEntityCreation(savedUser, dto);
-        return toDTO(savedUser);
+        return toUserResponseDTO(savedUser);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAll() {
         return userRepository.findAll().stream()
-                .map(this::toDTO)
+                .map(this::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public UserResponseDTO getById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        return toDTO(user);
+    @Transactional(readOnly = true)
+    public UserResponseDTO getById(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+        return toUserResponseDTO(user);
     }
 
     @Override
     @Transactional
     public UserResponseDTO update(Long id, UserCreateRequestDTO dto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
         Role oldRole = user.getRole();
         Role newRole = Role.valueOf(dto.getRole());
@@ -100,7 +96,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User savedUser = userRepository.save(user);
-        return toDTO(savedUser);
+        return toUserResponseDTO(savedUser);
     }
 
     @Override
@@ -124,6 +120,18 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         handleRoleSpecificEntityCreation(savedUser, userDTO);
+    }
+
+    @Override
+    public List<UserResponseDTO> getProfessoresByEscola(Long escolaId) {
+        if (escolaId == null) {
+            return userRepository.findAllByRole(Role.PROFESSOR).stream()
+                    .map(this::toUserResponseDTO)
+                    .collect(Collectors.toList());
+        }
+        return userRepository.findProfessoresByEscolaId(escolaId).stream()
+                .map(this::toUserResponseDTO)
+                .collect(Collectors.toList());
     }
 
     private void handleRoleSpecificEntityCreation(User user, UserCreateRequestDTO dto) {
@@ -152,7 +160,29 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private UserResponseDTO toDTO(User user) {
-        return new UserResponseDTO(user.getId(), user.getNomeCompleto(), user.getEmail(), user.getRole().name());
+    private UserResponseDTO toUserResponseDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setNomeCompleto(user.getNomeCompleto());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        dto.setAtivo(user.isAtivo());
+
+        if (user.getRole() == Role.PROFESSOR) {
+            lotacaoProfessorRepository.findByProfessorUserId(user.getId()).stream().findFirst().ifPresent(lotacao -> {
+                dto.setEscolaId(lotacao.getEscola().getId());
+                dto.setEscolaNome(lotacao.getEscola().getNome());
+            });
+        } else if (user.getRole() == Role.ALUNO) {
+            matriculaAlunoRepository.findByAlunoUserId(user.getId()).stream().findFirst().ifPresent(matricula -> {
+                dto.setEscolaId(matricula.getEscola().getId());
+                dto.setEscolaNome(matricula.getEscola().getNome());
+                if (matricula.getTurma() != null) {
+                    dto.setTurmaId(matricula.getTurma().getId());
+                    dto.setTurmaNome(matricula.getTurma().getNome());
+                }
+            });
+        }
+        return dto;
     }
 }

@@ -5,20 +5,22 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedLayout from './components/ProtectedLayout';
-import CadastrarProfessor from './pages/CadastrarProfessor';
-import CadastrarAluno from './pages/CadastrarAluno';
-import CadastrarAdmin from './pages/CadastrarAdmin';
+import CadastrarUsuario from './pages/CadastrarUsuario';
+import CadastrarEscola from './pages/CadastrarEscola';
+import CadastrarTurma from './pages/CadastrarTurma';
 import ListarUsuarios from './pages/ListarUsuarios';
+import ListarEscolas from './pages/ListarEscolas';
+import ListarTurmas from './pages/ListarTurmas';
 import EditarUsuario from './pages/EditarUsuario';
-import ProfessorDashboard from './pages/ProfessorDashboard';
+import EditarEscola from './pages/EditarEscola';
 import CadastrarAtividade from './pages/CadastrarAtividade';
 import ListarAtividades from './pages/ListarAtividades';
-import CadastrarEscola from './pages/CadastrarEscola';
-import ListarEscolas from './pages/ListarEscolas';
+import EditarAtividade from './pages/EditarAtividade';
+import DesignarAtividade from './pages/DesignarAtividade';
+import ProfessorDashboard from './pages/ProfessorDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Container } from '@mui/material';
 import Navbar from './components/Navbar';
-import EditarAtividade from './pages/EditarAtividade';
 
 const theme = createTheme({
   palette: {
@@ -38,29 +40,25 @@ function App() {
         <Navbar />
         <Container>
           <Routes>
-            {/* Rotas Públicas */}
-            <Route path="/" element={<Login />} />
-
-            {/* Rotas Protegidas */}
-            <Route element={<ProtectedLayout />}>
-              {/* Dashboards */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/professor" element={<ProfessorDashboard />} />
-
-              {/* Rotas de Admin */}
-              <Route path="/admin/cadastrar-usuario" element={<CadastrarAdmin />} />
-              <Route path="/admin/cadastrar-professor" element={<CadastrarProfessor />} />
-              <Route path="/admin/cadastrar-aluno" element={<CadastrarAluno />} />
-              <Route path="/admin/listar-usuarios" element={<ListarUsuarios />} />
-              <Route path="/admin/editar-usuario/:id" element={<EditarUsuario />} />
-              <Route path="/admin/cadastrar-escola" element={<CadastrarEscola />} />
-              <Route path="/admin/listar-escolas" element={<ListarEscolas />} />
-
-              {/* Rotas de Professor */}
-              <Route path="/professor/cadastrar-atividade" element={<CadastrarAtividade />} />
-              <Route path="/professor/atividades" element={<ListarAtividades />} />
-              <Route path="/professor/editar-atividade/:id" element={<EditarAtividade />} />
-            </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedLayout><AdminDashboard /></ProtectedLayout>} />
+            
+            {/* Rotas do Admin */}
+            <Route path="/cadastrar-usuario" element={<ProtectedLayout><CadastrarUsuario /></ProtectedLayout>} />
+            <Route path="/cadastrar-escola" element={<ProtectedLayout><CadastrarEscola /></ProtectedLayout>} />
+            <Route path="/cadastrar-turma" element={<ProtectedLayout><CadastrarTurma /></ProtectedLayout>} />
+            <Route path="/listar-usuarios" element={<ProtectedLayout><ListarUsuarios /></ProtectedLayout>} />
+            <Route path="/listar-escolas" element={<ProtectedLayout><ListarEscolas /></ProtectedLayout>} />
+            <Route path="/listar-turmas" element={<ProtectedLayout><ListarTurmas /></ProtectedLayout>} />
+            <Route path="/editar-usuario/:id" element={<ProtectedLayout><EditarUsuario /></ProtectedLayout>} />
+            <Route path="/editar-escola/:id" element={<ProtectedLayout><EditarEscola /></ProtectedLayout>} />
+            
+            {/* Rotas do Professor */}
+            <Route path="/professor" element={<ProtectedLayout><ProfessorDashboard /></ProtectedLayout>} />
+            <Route path="/professor/cadastrar-atividade" element={<ProtectedLayout><CadastrarAtividade /></ProtectedLayout>} />
+            <Route path="/professor/listar-atividades" element={<ProtectedLayout><ListarAtividades /></ProtectedLayout>} />
+            <Route path="/professor/editar-atividade/:id" element={<ProtectedLayout><EditarAtividade /></ProtectedLayout>} />
+            <Route path="/professor/designar-atividade/:id" element={<ProtectedLayout><DesignarAtividade /></ProtectedLayout>} />
           </Routes>
         </Container>
       </div>

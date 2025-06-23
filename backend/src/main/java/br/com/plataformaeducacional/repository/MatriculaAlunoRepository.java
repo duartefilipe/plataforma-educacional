@@ -14,6 +14,8 @@ public interface MatriculaAlunoRepository extends JpaRepository<MatriculaAluno, 
 
     List<MatriculaAluno> findByEscolaId(Long escolaId);
 
+    List<MatriculaAluno> findByTurmaId(Long turmaId);
+
     Optional<MatriculaAluno> findByAlunoUserIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoUserId, Long escolaId, String turno, Integer anoLetivo);
 
     void deleteByAlunoUserIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoUserId, Long escolaId, String turno, Integer anoLetivo);

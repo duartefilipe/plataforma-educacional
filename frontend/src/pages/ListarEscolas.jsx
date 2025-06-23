@@ -50,10 +50,8 @@ const ListarEscolas = () => {
         }
     };
     
-    // TODO: Implementar a navegação para edição
     const handleEdit = (id) => {
-        // navigate(`/admin/editar-escola/${id}`);
-        alert("Funcionalidade de edição ainda não implementada.");
+        navigate(`/editar-escola/${id}`);
     };
 
     return (
@@ -78,8 +76,8 @@ const ListarEscolas = () => {
                                 <TableRow key={escola.id}>
                                     <TableCell>{escola.id}</TableCell>
                                     <TableCell>{escola.nome}</TableCell>
-                                    <TableCell>{escola.contatoEmail}</TableCell>
-                                    <TableCell>{escola.contatoTelefone}</TableCell>
+                                    <TableCell>{escola.emailContato}</TableCell>
+                                    <TableCell>{escola.telefone}</TableCell>
                                     <TableCell>
                                         <IconButton onClick={() => handleEdit(escola.id)} color="primary">
                                             <Edit />

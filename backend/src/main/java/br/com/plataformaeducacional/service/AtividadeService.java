@@ -52,6 +52,14 @@ public interface AtividadeService {
      */
     void deletarAtividade(Long id, Long professorId) throws IOException;
 
+    /**
+     * Designa uma atividade para uma turma.
+     * @param atividadeId ID da atividade.
+     * @param turmaId ID da turma.
+     * @param professorId ID do professor (para verificar permissão).
+     */
+    void designarAtividadeParaTurma(Long atividadeId, Long turmaId, Long professorId);
+
     // Métodos para download podem ser adicionados aqui ou no controller
     // Ex: byte[] baixarArquivoAtividade(Long id, Long professorId) throws IOException;
     // Ex: Atividade getAtividadeParaDownload(Long id, Long professorId);

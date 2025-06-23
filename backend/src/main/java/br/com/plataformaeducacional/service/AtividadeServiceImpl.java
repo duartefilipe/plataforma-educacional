@@ -2,9 +2,15 @@ package br.com.plataformaeducacional.service;
 
 import br.com.plataformaeducacional.dto.AtividadeDTO;
 import br.com.plataformaeducacional.entity.Atividade;
+import br.com.plataformaeducacional.entity.DesignacaoAtividade;
+import br.com.plataformaeducacional.entity.MatriculaAluno;
 import br.com.plataformaeducacional.entity.Professor;
+import br.com.plataformaeducacional.entity.Turma;
 import br.com.plataformaeducacional.repository.AtividadeRepository;
+import br.com.plataformaeducacional.repository.DesignacaoAtividadeRepository;
+import br.com.plataformaeducacional.repository.MatriculaAlunoRepository;
 import br.com.plataformaeducacional.repository.ProfessorRepository;
+import br.com.plataformaeducacional.repository.TurmaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +33,9 @@ import java.util.stream.Collectors;
 public class AtividadeServiceImpl implements AtividadeService {
     private final AtividadeRepository atividadeRepository;
     private final ProfessorRepository professorRepository;
+    private final TurmaRepository turmaRepository;
+    private final MatriculaAlunoRepository matriculaAlunoRepository;
+    private final DesignacaoAtividadeRepository designacaoAtividadeRepository;
 
     private final Path fileStorageLocation = Paths.get("uploads/atividades").toAbsolutePath().normalize();
 
@@ -153,6 +162,32 @@ public class AtividadeServiceImpl implements AtividadeService {
         // Deleta o arquivo físico associado, se existir
         deleteArquivoFisico(atividade.getCaminhoArquivo());
         atividadeRepository.delete(atividade);
+    }
+
+    @Override
+    @Transactional
+    public void designarAtividadeParaTurma(Long atividadeId, Long turmaId, Long professorId) {
+        Atividade atividade = findAtividadeByIdAndProfessor(atividadeId, professorId);
+
+        Turma turma = turmaRepository.findById(turmaId)
+                .orElseThrow(() -> new EntityNotFoundException("Turma não encontrada com ID: " + turmaId));
+
+        List<MatriculaAluno> matriculas = matriculaAlunoRepository.findByTurmaId(turmaId);
+        if (matriculas.isEmpty()) {
+            throw new EntityNotFoundException("Nenhum aluno encontrado nesta turma para designação.");
+        }
+
+        for (MatriculaAluno matricula : matriculas) {
+            boolean jaDesignada = designacaoAtividadeRepository.existsByAtividadeIdAndAlunoUserId(atividadeId, matricula.getAluno().getUserId());
+            if (!jaDesignada) {
+                DesignacaoAtividade novaDesignacao = new DesignacaoAtividade(
+                        atividade,
+                        matricula.getAluno(),
+                        atividade.getProfessorCriador()
+                );
+                designacaoAtividadeRepository.save(novaDesignacao);
+            }
+        }
     }
 
     // Método auxiliar para buscar e verificar permissão

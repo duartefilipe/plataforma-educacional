@@ -88,6 +88,14 @@ const ListarAtividades = () => {
                       </Button>
                       <Button
                         variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => navigate(`/professor/designar-atividade/${atividade.id}`)}
+                      >
+                        Designar
+                      </Button>
+                      <Button
+                        variant="contained"
                         color="secondary"
                         size="small"
                         onClick={() => handleDelete(atividade.id)}

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "matriculas_alunos", uniqueConstraints = {
@@ -30,6 +31,11 @@ public class MatriculaAluno {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "escola_id", nullable = false)
     private Escola escola;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turma_id") // Pode ser nulo se o aluno ainda não foi enturmado
+    @ToString.Exclude
+    private Turma turma;
 
     @NotBlank(message = "Turno é obrigatório")
     @Size(max = 50)

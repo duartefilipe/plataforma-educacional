@@ -13,11 +13,14 @@ public interface DesignacaoAtividadeRepository extends JpaRepository<DesignacaoA
 
     List<DesignacaoAtividade> findByAlunoUserIdOrderByDataDesignacaoDesc(Long alunoUserId);
 
+    @Query("SELECT da FROM DesignacaoAtividade da WHERE da.professorDesignador.id = :professorId")
     List<DesignacaoAtividade> findByProfessorDesignadorUserId(Long professorId);
 
     List<DesignacaoAtividade> findByAtividadeId(Long atividadeId);
 
     Optional<DesignacaoAtividade> findByAtividadeIdAndAlunoUserId(Long atividadeId, Long alunoUserId);
+
+    boolean existsByAtividadeIdAndAlunoUserId(Long atividadeId, Long alunoUserId);
 
     // Query para buscar atividades relevantes para um aluno:
     // 1. Atividades designadas diretamente a ele

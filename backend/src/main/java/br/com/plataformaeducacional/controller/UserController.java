@@ -3,6 +3,7 @@ package br.com.plataformaeducacional.controller;
 import br.com.plataformaeducacional.dto.request.UserCreateRequestDTO;
 import br.com.plataformaeducacional.dto.response.UserResponseDTO;
 import br.com.plataformaeducacional.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,37 +15,43 @@ import java.util.List;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @CrossOrigin
-@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserCreateRequestDTO userDTO) {
-        try {
-            userService.createUser(userDTO);
-            return new ResponseEntity<>("Usuário criado com sucesso", HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping("/criar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Valid UserCreateRequestDTO userDTO) {
+        UserResponseDTO createdUser = userService.create(userDTO);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAll() {
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> update(@PathVariable Long id, @RequestBody UserCreateRequestDTO request) {
-        return ResponseEntity.ok(userService.update(id, request));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody @Valid UserCreateRequestDTO userDTO) {
+        return ResponseEntity.ok(userService.update(id, userDTO));
+    }
+
+    @GetMapping("/professores")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public ResponseEntity<List<UserResponseDTO>> getProfessoresByEscola(@RequestParam(required = false) Long escolaId) {
+        return ResponseEntity.ok(userService.getProfessoresByEscola(escolaId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
