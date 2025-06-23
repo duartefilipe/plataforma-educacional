@@ -62,6 +62,10 @@ public class Atividade {
     @ToString.Exclude
     private Professor professorCriador;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "escola_id")
+    private Escola escola;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -76,6 +80,8 @@ public class Atividade {
 
     // @OneToMany(mappedBy = "atividade", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     // private Set<DesignacaoAtividade> designacoes;
+
+    // private Set<Tarefa> tarefas;
 
     public Atividade(String titulo, String descricao, String tipoConteudo, String conteudoTexto, String caminhoArquivo, String nomeArquivoOriginal, String tipoMimeArquivo, Long tamanhoArquivo, Professor professorCriador) {
         this.titulo = titulo;

@@ -22,10 +22,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import br.com.plataformaeducacional.entity.Turma;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import br.com.plataformaeducacional.dto.EscolaDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -97,6 +99,23 @@ public class UserServiceImpl implements UserService {
         }
 
         User savedUser = userRepository.save(user);
+        // Atualizar matrícula do aluno se for ALUNO
+        if (newRole == Role.ALUNO && dto.getTurmaId() != null) {
+            Aluno aluno = alunoRepository.findById(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
+            Turma turma = turmaRepository.findById(dto.getTurmaId())
+                .orElseThrow(() -> new EntityNotFoundException("Turma não encontrada"));
+            Escola escola = turma.getEscola();
+            // Procura matrícula existente para o ano letivo e escola e turno
+            MatriculaAluno matricula = matriculaAlunoRepository.findByAlunoIdAndEscolaIdAndTurnoAndAnoLetivo(
+                aluno.getId(), escola.getId(), turma.getTurno(), turma.getAnoLetivo()
+            ).orElse(null);
+            if (matricula == null) {
+                matricula = new MatriculaAluno(aluno, escola, turma.getTurno(), turma.getAnoLetivo());
+            }
+            matricula.setTurma(turma);
+            matriculaAlunoRepository.save(matricula);
+        }
         return toUserResponseDTO(savedUser);
     }
 
@@ -137,6 +156,23 @@ public class UserServiceImpl implements UserService {
         return professores.stream()
                 .map(this::toUserResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<EscolaDTO> getEscolasDoProfessor(Long professorId) {
+        Professor professor = professorRepository.findById(professorId)
+            .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado"));
+        return professor.getLotacoes().stream()
+            .map(lotacao -> {
+                Escola escola = lotacao.getEscola();
+                EscolaDTO dto = new EscolaDTO();
+                dto.setId(escola.getId());
+                dto.setNome(escola.getNome());
+                dto.setEmailContato(escola.getEmailContato());
+                dto.setTelefone(escola.getTelefone());
+                return dto;
+            })
+            .collect(Collectors.toList());
     }
 
     private void handleRoleSpecificEntityCreation(User user, UserCreateRequestDTO dto) {

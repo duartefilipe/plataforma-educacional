@@ -38,6 +38,7 @@ public class TurmaServiceImpl implements TurmaService {
         turma.setAnoLetivo(turmaDTO.getAnoLetivo());
         turma.setEscola(escola);
         turma.setProfessor(professor);
+        turma.setTurno(turmaDTO.getTurno());
 
         turma = turmaRepository.save(turma);
         return toDTO(turma);
@@ -72,6 +73,7 @@ public class TurmaServiceImpl implements TurmaService {
         turma.setAnoLetivo(turmaDTO.getAnoLetivo());
         turma.setEscola(escola);
         turma.setProfessor(professor);
+        turma.setTurno(turmaDTO.getTurno());
 
         turma = turmaRepository.save(turma);
         return toDTO(turma);

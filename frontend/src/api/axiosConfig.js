@@ -17,4 +17,13 @@ api.interceptors.request.use(
   }
 );
 
-export default api; 
+export default api;
+
+export const favoritarAtividade = (professorId, atividadeCompartilhadaId) =>
+  api.post(`/atividades/favoritas`, null, { params: { professorId, atividadeCompartilhadaId } });
+
+export const desfavoritarAtividade = (professorId, atividadeCompartilhadaId) =>
+  api.delete(`/atividades/favoritas`, { params: { professorId, atividadeCompartilhadaId } });
+
+export const listarFavoritas = (professorId) =>
+  api.get(`/atividades/favoritas/professor/${professorId}`); 

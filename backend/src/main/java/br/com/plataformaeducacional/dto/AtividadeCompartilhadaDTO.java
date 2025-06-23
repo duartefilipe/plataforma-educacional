@@ -33,5 +33,6 @@ public class AtividadeCompartilhadaDTO {
     @Size(max = 100)
     private String disciplina;
     private String tags;
+    private String escolaNome;
 }
 

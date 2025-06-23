@@ -37,9 +37,9 @@ public class Aluno extends User {
     @ToString.Exclude // Evitar recursão no toString
     private Set<MatriculaAluno> matriculas = new HashSet<>();
 
-    // Relacionamento com Atividades Designadas (será mapeado posteriormente)
+    // Relacionamento com Tarefas (será mapeado posteriormente)
     // @OneToMany(mappedBy = "aluno")
-    // private Set<DesignacaoAtividade> atividadesDesignadas;
+    // private Set<Tarefa> tarefas;
 
     public Aluno(User user) {
         super();

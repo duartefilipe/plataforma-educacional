@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class DesignacaoAtividadeDTO {
+public class TarefaDTO {
 
     private Long id; // ID da Designação
 
@@ -24,8 +24,8 @@ public class DesignacaoAtividadeDTO {
     private String professorDesignadorNome;
 
     // Dados do Aluno (geralmente não precisa no DTO de retorno para o próprio aluno)
-    // private Long alunoId;
-    // private String alunoNome;
+    private String alunoNome;
+    private String turmaNome;
 
     // Dados da Designação
     private LocalDateTime dataDesignacao;

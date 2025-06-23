@@ -2,15 +2,17 @@ package br.com.plataformaeducacional.service;
 
 import br.com.plataformaeducacional.dto.AtividadeDTO;
 import br.com.plataformaeducacional.entity.Atividade;
-import br.com.plataformaeducacional.entity.DesignacaoAtividade;
+import br.com.plataformaeducacional.entity.Tarefa;
 import br.com.plataformaeducacional.entity.MatriculaAluno;
 import br.com.plataformaeducacional.entity.Professor;
 import br.com.plataformaeducacional.entity.Turma;
 import br.com.plataformaeducacional.repository.AtividadeRepository;
-import br.com.plataformaeducacional.repository.DesignacaoAtividadeRepository;
+import br.com.plataformaeducacional.repository.TarefaRepository;
 import br.com.plataformaeducacional.repository.MatriculaAlunoRepository;
 import br.com.plataformaeducacional.repository.ProfessorRepository;
 import br.com.plataformaeducacional.repository.TurmaRepository;
+import br.com.plataformaeducacional.repository.EscolaRepository;
+import br.com.plataformaeducacional.entity.Escola;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +30,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import br.com.plataformaeducacional.enums.Role;
+
 @Service
 @RequiredArgsConstructor
 public class AtividadeServiceImpl implements AtividadeService {
@@ -35,7 +39,8 @@ public class AtividadeServiceImpl implements AtividadeService {
     private final ProfessorRepository professorRepository;
     private final TurmaRepository turmaRepository;
     private final MatriculaAlunoRepository matriculaAlunoRepository;
-    private final DesignacaoAtividadeRepository designacaoAtividadeRepository;
+    private final TarefaRepository tarefaRepository;
+    private final EscolaRepository escolaRepository;
 
     private final Path fileStorageLocation = Paths.get("uploads/atividades").toAbsolutePath().normalize();
 
@@ -93,8 +98,13 @@ public class AtividadeServiceImpl implements AtividadeService {
 
     @Override
     @Transactional(readOnly = true)
-    public AtividadeDTO buscarAtividadePorId(Long id, Long professorId) {
-        Atividade atividade = findAtividadeByIdAndProfessor(id, professorId);
+    public AtividadeDTO buscarAtividadePorId(Long id, Long professorId, Role role) {
+        Atividade atividade;
+        if (role == Role.ADMIN) {
+            atividade = findAtividadeById(id);
+        } else {
+            atividade = findAtividadeByIdAndProfessor(id, professorId);
+        }
         return convertToDTO(atividade);
     }
 
@@ -110,12 +120,26 @@ public class AtividadeServiceImpl implements AtividadeService {
 
     @Override
     @Transactional
-    public AtividadeDTO atualizarAtividade(Long id, AtividadeDTO atividadeDTO, MultipartFile arquivo, Long professorId) throws IOException {
-        Atividade atividadeExistente = findAtividadeByIdAndProfessor(id, professorId);
-
+    public AtividadeDTO atualizarAtividade(Long id, AtividadeDTO atividadeDTO, MultipartFile arquivo, Long professorId, Role role) throws IOException {
+        Atividade atividadeExistente;
+        if (role == Role.ADMIN) {
+            atividadeExistente = findAtividadeById(id);
+        } else {
+            atividadeExistente = findAtividadeByIdAndProfessor(id, professorId);
+        }
         // Atualiza campos básicos, exceto os relacionados ao arquivo e criador
-        BeanUtils.copyProperties(atividadeDTO, atividadeExistente, "id", "professorCriadorId", "professorCriadorNome", "createdAt", "updatedAt", "caminhoArquivo", "nomeArquivoOriginal", "tipoMimeArquivo", "tamanhoArquivo", "professorCriador");
-
+        BeanUtils.copyProperties(atividadeDTO, atividadeExistente, "id", "professorCriadorId", "professorCriadorNome", "createdAt", "updatedAt", "caminhoArquivo", "nomeArquivoOriginal", "tipoMimeArquivo", "tamanhoArquivo", "professorCriador", "escola");
+        // Permitir alterar professor e escola
+        if (atividadeDTO.getProfessorId() != null) {
+            Professor novoProfessor = professorRepository.findById(atividadeDTO.getProfessorId())
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Professor não encontrado"));
+            atividadeExistente.setProfessorCriador(novoProfessor);
+        }
+        if (atividadeDTO.getEscolaId() != null) {
+            Escola novaEscola = escolaRepository.findById(atividadeDTO.getEscolaId())
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Escola não encontrada"));
+            atividadeExistente.setEscola(novaEscola);
+        }
         // Lógica para atualizar/substituir arquivo
         if (arquivo != null && !arquivo.isEmpty()) {
             if (!"ARQUIVO_UPLOAD".equalsIgnoreCase(atividadeExistente.getTipoConteudo())) {
@@ -123,7 +147,6 @@ public class AtividadeServiceImpl implements AtividadeService {
             }
             // Deleta arquivo antigo se existir
             deleteArquivoFisico(atividadeExistente.getCaminhoArquivo());
-
             // Salva novo arquivo
             String originalFilename = arquivo.getOriginalFilename() != null ? arquivo.getOriginalFilename() : "arquivo";
             String fileExtension = "";
@@ -134,13 +157,11 @@ public class AtividadeServiceImpl implements AtividadeService {
             String storedFilename = UUID.randomUUID().toString() + fileExtension;
             Path targetLocation = this.fileStorageLocation.resolve(storedFilename);
             Files.copy(arquivo.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
             atividadeExistente.setCaminhoArquivo(targetLocation.toString());
             atividadeExistente.setNomeArquivoOriginal(originalFilename);
             atividadeExistente.setTipoMimeArquivo(arquivo.getContentType());
             atividadeExistente.setTamanhoArquivo(arquivo.getSize());
             atividadeExistente.setConteudoTexto(null); // Garante que não haja texto se for upload
-
         } else if ("TEXTO".equalsIgnoreCase(atividadeExistente.getTipoConteudo())) {
              // Se o tipo for TEXTO e não veio arquivo, remove infos de arquivo antigo (se houver)
              deleteArquivoFisico(atividadeExistente.getCaminhoArquivo());
@@ -150,7 +171,6 @@ public class AtividadeServiceImpl implements AtividadeService {
              atividadeExistente.setTamanhoArquivo(null);
         }
         // Se for ARQUIVO_UPLOAD e não veio arquivo novo, mantém o antigo.
-
         Atividade savedAtividade = atividadeRepository.save(atividadeExistente);
         return convertToDTO(savedAtividade);
     }
@@ -178,16 +198,39 @@ public class AtividadeServiceImpl implements AtividadeService {
         }
 
         for (MatriculaAluno matricula : matriculas) {
-            boolean jaDesignada = designacaoAtividadeRepository.existsByAtividadeIdAndAlunoId(atividadeId, matricula.getAluno().getId());
+            boolean jaDesignada = tarefaRepository.existsByAtividadeIdAndAlunoId(atividadeId, matricula.getAluno().getId());
             if (!jaDesignada) {
-                DesignacaoAtividade novaDesignacao = new DesignacaoAtividade(
-                        atividade,
-                        matricula.getAluno(),
-                        atividade.getProfessorCriador()
+                Tarefa novaTarefa = new Tarefa(
+                    atividade,
+                    matricula.getAluno(),
+                    atividade.getProfessorCriador()
                 );
-                designacaoAtividadeRepository.save(novaDesignacao);
+                tarefaRepository.save(novaTarefa);
             }
         }
+    }
+
+    @Override
+    public List<AtividadeDTO> listarAtividadesPorTurma(Long turmaId) {
+        // Buscar todos os alunos da turma
+        List<MatriculaAluno> matriculas = matriculaAlunoRepository.findByTurmaId(turmaId);
+        if (matriculas.isEmpty()) {
+            return List.of();
+        }
+        List<Long> alunoIds = matriculas.stream()
+            .map(m -> m.getAluno().getId())
+            .toList();
+
+        // Buscar todas as designações de atividades para esses alunos
+        List<Tarefa> tarefas = tarefaRepository.findAll().stream()
+            .filter(t -> alunoIds.contains(t.getAluno().getId()))
+            .toList();
+
+        // Mapear para DTOs de atividade, removendo duplicatas
+        return tarefas.stream()
+            .map(tarefa -> convertToDTO(tarefa.getAtividade()))
+            .distinct()
+            .toList();
     }
 
     // Método auxiliar para buscar e verificar permissão

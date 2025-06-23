@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class DesignacaoAtividade {
+public class Tarefa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -76,7 +76,7 @@ public class DesignacaoAtividade {
     @Column(name = "resposta_aluno_arquivo")
     private String respostaAlunoArquivo; // Caminho para o arquivo de resposta do aluno
 
-    public DesignacaoAtividade(Atividade atividade, Aluno aluno, Professor professorDesignador) {
+    public Tarefa(Atividade atividade, Aluno aluno, Professor professorDesignador) {
         this.atividade = atividade;
         this.aluno = aluno;
         this.professorDesignador = professorDesignador;

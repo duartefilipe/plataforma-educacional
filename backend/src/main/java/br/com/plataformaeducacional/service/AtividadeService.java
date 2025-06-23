@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import br.com.plataformaeducacional.enums.Role;
+
 public interface AtividadeService {
 
     /**
@@ -22,9 +24,10 @@ public interface AtividadeService {
      * Busca uma atividade pelo ID.
      * @param id ID da atividade.
      * @param professorId ID do professor (para verificar permissão).
+     * @param role Role do professor (para lógica diferenciada).
      * @return DTO da atividade encontrada.
      */
-    AtividadeDTO buscarAtividadePorId(Long id, Long professorId);
+    AtividadeDTO buscarAtividadePorId(Long id, Long professorId, Role role);
 
     /**
      * Lista todas as atividades criadas por um professor específico.
@@ -39,10 +42,11 @@ public interface AtividadeService {
      * @param atividadeDTO Novos dados da atividade.
      * @param arquivo (Opcional) Novo arquivo a ser anexado (substitui o antigo se existir).
      * @param professorId ID do professor (para verificar permissão).
+     * @param role Role do professor (para lógica diferenciada).
      * @return DTO da atividade atualizada.
      * @throws IOException Se houver erro no upload do arquivo.
      */
-    AtividadeDTO atualizarAtividade(Long id, AtividadeDTO atividadeDTO, MultipartFile arquivo, Long professorId) throws IOException;
+    AtividadeDTO atualizarAtividade(Long id, AtividadeDTO atividadeDTO, MultipartFile arquivo, Long professorId, Role role) throws IOException;
 
     /**
      * Deleta uma atividade.
@@ -59,6 +63,13 @@ public interface AtividadeService {
      * @param professorId ID do professor (para verificar permissão).
      */
     void designarAtividadeParaTurma(Long atividadeId, Long turmaId, Long professorId);
+
+    /**
+     * Lista todas as atividades de uma turma específica.
+     * @param turmaId ID da turma.
+     * @return Lista de DTOs das atividades.
+     */
+    List<AtividadeDTO> listarAtividadesPorTurma(Long turmaId);
 
     // Métodos para download podem ser adicionados aqui ou no controller
     // Ex: byte[] baixarArquivoAtividade(Long id, Long professorId) throws IOException;

@@ -33,6 +33,8 @@ public class Professor extends User {
     // @OneToMany(mappedBy = "professorDesignador")
     // private Set<DesignacaoAtividade> atividadesDesignadas;
 
+    // private Set<Tarefa> tarefasDesignadas;
+
     public Professor(User user, String disciplinas) {
         super();
         this.setId(user.getId());

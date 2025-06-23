@@ -12,6 +12,10 @@ const EditarAtividade = () => {
     const [conteudoTexto, setConteudoTexto] = useState('');
     const [arquivo, setArquivo] = useState(null);
     const [nomeArquivoOriginal, setNomeArquivoOriginal] = useState('');
+    const [professorId, setProfessorId] = useState('');
+    const [escolaId, setEscolaId] = useState('');
+    const [professores, setProfessores] = useState([]);
+    const [escolas, setEscolas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -27,13 +31,26 @@ const EditarAtividade = () => {
                 setTipoConteudo(atividade.tipoConteudo);
                 setConteudoTexto(atividade.conteudoTexto || '');
                 setNomeArquivoOriginal(atividade.nomeArquivoOriginal || '');
+                setProfessorId(atividade.professorCriadorId || '');
+                setEscolaId(atividade.escolaId || '');
             } catch (err) {
                 setError('Erro ao carregar a atividade. ' + (err.response?.data?.message || err.message));
             } finally {
                 setLoading(false);
             }
         };
+        const fetchProfessoresEscolas = async () => {
+            try {
+                const profRes = await axiosConfig.get('/users/professores');
+                setProfessores(profRes.data);
+                const escRes = await axiosConfig.get('/escolas');
+                setEscolas(escRes.data);
+            } catch (err) {
+                // Não bloqueia a tela, mas pode exibir erro se quiser
+            }
+        };
         fetchAtividade();
+        fetchProfessoresEscolas();
     }, [id]);
 
     const handleSubmit = async (e) => {
@@ -42,7 +59,7 @@ const EditarAtividade = () => {
         setSuccess('');
 
         const formData = new FormData();
-        const atividadeData = { titulo, descricao, tipoConteudo, conteudoTexto };
+        const atividadeData = { titulo, descricao, tipoConteudo, conteudoTexto, professorId, escolaId };
         formData.append('atividade', new Blob([JSON.stringify(atividadeData)], { type: 'application/json' }));
 
         if (tipoConteudo === 'ARQUIVO_UPLOAD' && arquivo) {
@@ -93,6 +110,22 @@ const EditarAtividade = () => {
                         <Select value={tipoConteudo} label="Tipo de Conteúdo" onChange={(e) => setTipoConteudo(e.target.value)}>
                             <MenuItem value="TEXTO">Texto</MenuItem>
                             <MenuItem value="ARQUIVO_UPLOAD">Upload de Arquivo</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth required>
+                        <InputLabel>Professor</InputLabel>
+                        <Select value={professorId} label="Professor" onChange={e => setProfessorId(e.target.value)}>
+                            {professores.map(prof => (
+                                <MenuItem key={prof.id} value={prof.id}>{prof.nomeCompleto || prof.nome}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth required>
+                        <InputLabel>Escola</InputLabel>
+                        <Select value={escolaId} label="Escola" onChange={e => setEscolaId(e.target.value)}>
+                            {escolas.map(esc => (
+                                <MenuItem key={esc.id} value={esc.id}>{esc.nome}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
                     {tipoConteudo === 'TEXTO' ? (

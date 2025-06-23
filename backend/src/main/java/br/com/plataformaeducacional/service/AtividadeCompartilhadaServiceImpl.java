@@ -163,6 +163,9 @@ public class AtividadeCompartilhadaServiceImpl implements AtividadeCompartilhada
                 dto.setAtividadeProfessorCriadorId(atividade.getProfessorCriador().getId());
                 dto.setAtividadeProfessorCriadorNome(atividade.getProfessorCriador().getNomeCompleto());
             }
+            if (atividade.getEscola() != null) {
+                dto.setEscolaNome(atividade.getEscola().getNome());
+            }
         }
         return dto;
     }

@@ -2,10 +2,15 @@ import React from 'react';
 import { Container, Typography, Paper } from '@mui/material';
 import UserForm from '../components/UserForm';
 import api from '../api/axiosConfig';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const CadastrarUsuario = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Captura o perfil da query string (?role=PROFESSOR)
+    const params = new URLSearchParams(location.search);
+    const defaultRole = params.get('role');
 
     const handleCreateUser = async (userData) => {
         try {
@@ -24,7 +29,7 @@ const CadastrarUsuario = () => {
                 <Typography variant="h4" component="h1" gutterBottom>
                     Cadastrar Novo Usuário
                 </Typography>
-                <UserForm onSubmit={handleCreateUser} isEdit={false} />
+                <UserForm onSubmit={handleCreateUser} isEdit={false} defaultRole={defaultRole} />
             </Paper>
         </Container>
     );

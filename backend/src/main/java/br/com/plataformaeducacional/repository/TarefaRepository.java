@@ -1,6 +1,6 @@
 package br.com.plataformaeducacional.repository;
 
-import br.com.plataformaeducacional.entity.DesignacaoAtividade;
+import br.com.plataformaeducacional.entity.Tarefa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DesignacaoAtividadeRepository extends JpaRepository<DesignacaoAtividade, Long> {
+public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
-    List<DesignacaoAtividade> findByAlunoIdOrderByDataDesignacaoDesc(Long alunoId);
+    List<Tarefa> findByAlunoIdOrderByDataDesignacaoDesc(Long alunoId);
 
-    @Query("SELECT da FROM DesignacaoAtividade da WHERE da.professorDesignador.id = :professorId")
-    List<DesignacaoAtividade> findByProfessorDesignadorUserId(Long professorId);
+    @Query("SELECT t FROM Tarefa t WHERE t.professorDesignador.id = :professorId")
+    List<Tarefa> findByProfessorDesignadorUserId(Long professorId);
 
-    List<DesignacaoAtividade> findByAtividadeId(Long atividadeId);
+    List<Tarefa> findByAtividadeId(Long atividadeId);
 
-    Optional<DesignacaoAtividade> findByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
+    Optional<Tarefa> findByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
 
     boolean existsByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
 
@@ -29,9 +29,7 @@ public interface DesignacaoAtividadeRepository extends JpaRepository<DesignacaoA
 
     // Exemplo de query para buscar atividades de escolas onde o aluno está matriculado (requer joins complexos)
     // Esta lógica pode ser melhor implementada no Service layer, combinando resultados.
-    /*
-    @Query("SELECT da FROM DesignacaoAtividade da JOIN da.atividade a JOIN a.professorCriador pc JOIN pc.lotacoes l JOIN l.escola e JOIN e.matriculas m WHERE m.aluno.userId = :alunoId")
-    List<DesignacaoAtividade> findAtividadesDasEscolasDoAluno(Long alunoId);
-    */
+    @Query("SELECT t FROM Tarefa t JOIN t.aluno a JOIN a.matriculas m JOIN m.turma turma JOIN turma.escola e WHERE a.id = :alunoId")
+    List<Tarefa> findTarefasDasEscolasDoAluno(Long alunoId);
 }
 

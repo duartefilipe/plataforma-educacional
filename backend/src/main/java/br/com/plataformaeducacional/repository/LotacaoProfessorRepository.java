@@ -19,5 +19,7 @@ public interface LotacaoProfessorRepository extends JpaRepository<LotacaoProfess
     @Modifying
     @Query("DELETE FROM LotacaoProfessor l WHERE l.professor.id = :professorId AND l.escola.id = :escolaId")
     void deleteByProfessorIdAndEscolaId(Long professorId, Long escolaId);
+
+    boolean existsByProfessorIdAndEscolaId(Long professorId, Long escolaId);
 }
 

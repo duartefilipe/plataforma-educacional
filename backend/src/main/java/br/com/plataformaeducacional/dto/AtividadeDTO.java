@@ -24,6 +24,8 @@ public class AtividadeDTO {
     private String professorCriadorNome; // Para exibição
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long professorId;
+    private Long escolaId;
     // Não incluir caminhoArquivo diretamente no DTO por segurança/abstração
 }
 

@@ -1,12 +1,12 @@
 package br.com.plataformaeducacional.service;
 
-import br.com.plataformaeducacional.dto.DesignacaoAtividadeDTO;
+import br.com.plataformaeducacional.dto.TarefaDTO;
 import br.com.plataformaeducacional.entity.Aluno;
 import br.com.plataformaeducacional.entity.Atividade;
-import br.com.plataformaeducacional.entity.DesignacaoAtividade;
+import br.com.plataformaeducacional.entity.Tarefa;
 import br.com.plataformaeducacional.entity.Professor;
 import br.com.plataformaeducacional.repository.AlunoRepository;
-import br.com.plataformaeducacional.repository.DesignacaoAtividadeRepository;
+import br.com.plataformaeducacional.repository.TarefaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
+public class AlunoTarefaServiceImpl implements AlunoTarefaService {
 
-    private final DesignacaoAtividadeRepository designacaoRepository;
+    private final TarefaRepository tarefaRepository;
     private final AlunoRepository alunoRepository;
 
     // Diretório para respostas de alunos. Idealmente, viria de application.properties
@@ -46,48 +46,45 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DesignacaoAtividadeDTO> listarAtividadesDesignadasParaAluno(Long alunoId) {
+    public List<TarefaDTO> listarTarefasParaAluno(Long alunoId) {
         if (!alunoRepository.existsById(alunoId)) {
             throw new EntityNotFoundException("Aluno não encontrado com ID: " + alunoId);
         }
-        List<DesignacaoAtividade> designacoes = designacaoRepository.findByAlunoIdOrderByDataDesignacaoDesc(alunoId);
-        return designacoes.stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<Tarefa> tarefas = tarefaRepository.findByAlunoIdOrderByDataDesignacaoDesc(alunoId);
+        return tarefas.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DesignacaoAtividadeDTO buscarDetalhesAtividadeDesignada(Long designacaoId, Long alunoId) {
-        DesignacaoAtividade designacao = findDesignacaoByIdAndAluno(designacaoId, alunoId);
-        return convertToDTO(designacao);
+    public TarefaDTO buscarDetalhesTarefa(Long tarefaId, Long alunoId) {
+        Tarefa tarefa = findTarefaByIdAndAluno(tarefaId, alunoId);
+        return convertToDTO(tarefa);
     }
 
     @Override
     @Transactional
-    public DesignacaoAtividadeDTO marcarAtividadeComoVisualizada(Long designacaoId, Long alunoId) {
-        DesignacaoAtividade designacao = findDesignacaoByIdAndAluno(designacaoId, alunoId);
-
-        if ("PENDENTE".equals(designacao.getStatus())) {
-            designacao.setStatus("VISUALIZADA");
-            designacaoRepository.save(designacao);
+    public TarefaDTO marcarTarefaComoVisualizada(Long tarefaId, Long alunoId) {
+        Tarefa tarefa = findTarefaByIdAndAluno(tarefaId, alunoId);
+        if ("PENDENTE".equals(tarefa.getStatus())) {
+            tarefa.setStatus("VISUALIZADA");
+            tarefaRepository.save(tarefa);
         }
-        return convertToDTO(designacao);
+        return convertToDTO(tarefa);
     }
 
     @Override
     @Transactional
-    public DesignacaoAtividadeDTO submeterRespostaAtividade(Long designacaoId, Long alunoId, String respostaTexto, MultipartFile arquivoResposta) throws IOException {
-        DesignacaoAtividade designacao = findDesignacaoByIdAndAluno(designacaoId, alunoId);
-
-        if (!("PENDENTE".equals(designacao.getStatus()) || "VISUALIZADA".equals(designacao.getStatus()))) {
-            throw new IllegalStateException("Não é possível submeter resposta para uma atividade com status: " + designacao.getStatus());
+    public TarefaDTO submeterRespostaTarefa(Long tarefaId, Long alunoId, String respostaTexto, MultipartFile arquivoResposta) throws IOException {
+        Tarefa tarefa = findTarefaByIdAndAluno(tarefaId, alunoId);
+        if (!("PENDENTE".equals(tarefa.getStatus()) || "VISUALIZADA".equals(tarefa.getStatus()))) {
+            throw new IllegalStateException("Não é possível submeter resposta para uma tarefa com status: " + tarefa.getStatus());
         }
-
-        designacao.setRespostaAlunoTexto(respostaTexto);
+        tarefa.setRespostaAlunoTexto(respostaTexto);
 
         // Lida com o upload do arquivo de resposta
         if (arquivoResposta != null && !arquivoResposta.isEmpty()) {
             // Deleta arquivo de resposta antigo, se existir
-            deleteArquivoFisico(designacao.getRespostaAlunoArquivo());
+            deleteArquivoFisico(tarefa.getRespostaAlunoArquivo());
 
             // Salva novo arquivo
             String originalFilename = arquivoResposta.getOriginalFilename() != null ? arquivoResposta.getOriginalFilename() : "resposta";
@@ -96,34 +93,33 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
             if (lastDot > 0) {
                 fileExtension = originalFilename.substring(lastDot);
             }
-            String storedFilename = "aluno_" + alunoId + "_designacao_" + designacaoId + "_" + UUID.randomUUID().toString() + fileExtension;
+            String storedFilename = "aluno_" + alunoId + "_tarefa_" + tarefaId + "_" + UUID.randomUUID().toString() + fileExtension;
             Path targetLocation = this.respostaStorageLocation.resolve(storedFilename);
             Files.copy(arquivoResposta.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            designacao.setRespostaAlunoArquivo(targetLocation.toString());
+            tarefa.setRespostaAlunoArquivo(targetLocation.toString());
         } else {
              // Se não veio arquivo novo, remove o antigo (caso exista)
-             deleteArquivoFisico(designacao.getRespostaAlunoArquivo());
-             designacao.setRespostaAlunoArquivo(null);
+             deleteArquivoFisico(tarefa.getRespostaAlunoArquivo());
+             tarefa.setRespostaAlunoArquivo(null);
         }
 
-        designacao.setStatus("ENTREGUE");
-        designacao.setDataEntrega(LocalDateTime.now());
+        tarefa.setStatus("ENTREGUE");
+        tarefa.setDataEntrega(LocalDateTime.now());
 
-        DesignacaoAtividade savedDesignacao = designacaoRepository.save(designacao);
-        return convertToDTO(savedDesignacao);
+        Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        return convertToDTO(savedTarefa);
     }
 
     // --- Métodos Auxiliares ---
 
-    private DesignacaoAtividade findDesignacaoByIdAndAluno(Long designacaoId, Long alunoId) {
-        DesignacaoAtividade designacao = designacaoRepository.findById(designacaoId)
-                .orElseThrow(() -> new EntityNotFoundException("Designação de atividade não encontrada com ID: " + designacaoId));
-
-        if (!designacao.getAluno().getId().equals(alunoId)) {
-            throw new AccessDeniedException("Aluno não tem permissão para acessar esta designação.");
+    private Tarefa findTarefaByIdAndAluno(Long tarefaId, Long alunoId) {
+        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+                .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com ID: " + tarefaId));
+        if (!tarefa.getAluno().getId().equals(alunoId)) {
+            throw new AccessDeniedException("Aluno não tem permissão para acessar esta tarefa.");
         }
-        return designacao;
+        return tarefa;
     }
 
     private void deleteArquivoFisico(String caminhoArquivo) throws IOException {
@@ -135,12 +131,12 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
         }
     }
 
-    private DesignacaoAtividadeDTO convertToDTO(DesignacaoAtividade designacao) {
-        DesignacaoAtividadeDTO dto = new DesignacaoAtividadeDTO();
-        BeanUtils.copyProperties(designacao, dto);
+    private TarefaDTO convertToDTO(Tarefa tarefa) {
+        TarefaDTO dto = new TarefaDTO();
+        BeanUtils.copyProperties(tarefa, dto);
 
-        if (designacao.getAtividade() != null) {
-            Atividade atividade = designacao.getAtividade();
+        if (tarefa.getAtividade() != null) {
+            Atividade atividade = tarefa.getAtividade();
             dto.setAtividadeId(atividade.getId());
             dto.setAtividadeTitulo(atividade.getTitulo());
             dto.setAtividadeDescricao(atividade.getDescricao());
@@ -148,8 +144,8 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
             dto.setAtividadeNomeArquivoOriginal(atividade.getNomeArquivoOriginal()); // Para link de download da atividade original
         }
 
-        if (designacao.getProfessorDesignador() != null) {
-            Professor professor = designacao.getProfessorDesignador();
+        if (tarefa.getProfessorDesignador() != null) {
+            Professor professor = tarefa.getProfessorDesignador();
             dto.setProfessorDesignadorId(professor.getId());
             dto.setProfessorDesignadorNome(professor.getNomeCompleto());
         }

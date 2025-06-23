@@ -24,4 +24,6 @@ public class TurmaDTO {
     private Long professorId;
 
     private String professorNome;
+
+    private String turno;
 }

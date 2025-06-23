@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Switch, FormControlLabel, Box, CircularProgress } from '@mui/material';
 import api from '../api/axiosConfig';
 
-const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
+const UserForm = ({ initialData, onSubmit, isEdit = false, defaultRole }) => {
     // Estados do formulário
     const [nomeCompleto, setNomeCompleto] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
-    const [role, setRole] = useState('ALUNO');
+    const [role, setRole] = useState(defaultRole || 'ALUNO');
     const [ativo, setAtivo] = useState(true);
     const [escolaId, setEscolaId] = useState('');
     const [turmaId, setTurmaId] = useState('');
@@ -22,12 +22,12 @@ const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
         if (isEdit && initialData) {
             setNomeCompleto(initialData.nomeCompleto || '');
             setEmail(initialData.email || '');
-            setRole(initialData.role || 'ALUNO');
+            setRole(initialData.role || defaultRole || 'ALUNO');
             setAtivo(initialData.ativo !== undefined ? initialData.ativo : true);
             setEscolaId(initialData.escolaId || '');
             setTurmaId(initialData.turmaId || '');
         }
-    }, [isEdit, initialData]);
+    }, [isEdit, initialData, defaultRole]);
 
     // Efeito para buscar escolas quando o perfil for Professor ou Aluno
     useEffect(() => {
@@ -53,20 +53,15 @@ const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
         }
     }, [isEdit, role, escolaId]);
 
-
     const handleSubmit = (e) => {
         e.preventDefault();
         const userData = { nomeCompleto, email, role, ativo, senha, escolaId };
-        
         if (role === 'ALUNO') {
             userData.turmaId = turmaId || null; // Envia null se desvinculado
         }
-        
-        // Remove a senha do payload se não for preenchida na edição
         if (isEdit && !senha) {
             delete userData.senha;
         }
-
         onSubmit(userData);
     };
 
@@ -79,7 +74,8 @@ const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
                 <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
                 <TextField label="Senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder={isEdit ? "Deixe em branco para não alterar" : ""} required={!isEdit} fullWidth />
 
-                {!isEdit && (
+                {/* Só mostra o select de perfil se não houver defaultRole */}
+                {!isEdit && !defaultRole && (
                     <FormControl fullWidth required>
                         <InputLabel>Perfil</InputLabel>
                         <Select value={role} label="Perfil" onChange={(e) => setRole(e.target.value)}>

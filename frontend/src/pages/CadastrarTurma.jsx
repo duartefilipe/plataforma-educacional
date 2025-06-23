@@ -11,6 +11,7 @@ const CadastrarTurma = () => {
     const [anoLetivo, setAnoLetivo] = useState(new Date().getFullYear());
     const [escolaId, setEscolaId] = useState('');
     const [professorId, setProfessorId] = useState('');
+    const [turno, setTurno] = useState('');
     
     const [escolas, setEscolas] = useState([]);
     const [professores, setProfessores] = useState([]);
@@ -65,7 +66,7 @@ const CadastrarTurma = () => {
             return;
         }
         try {
-            await api.post('/turmas', { nome, anoLetivo, escolaId, professorId });
+            await api.post('/turmas', { nome, anoLetivo, escolaId, professorId, turno });
             alert('Turma cadastrada com sucesso!');
             navigate('/listar-turmas');
         } catch (error) {
@@ -108,6 +109,15 @@ const CadastrarTurma = () => {
                                         <MenuItem key={prof.id} value={prof.id}>{prof.nomeCompleto}</MenuItem>
                                     ))
                                 )}
+                            </Select>
+                        </FormControl>
+                        
+                        <FormControl fullWidth required>
+                            <InputLabel>Turno</InputLabel>
+                            <Select value={turno} label="Turno" onChange={e => setTurno(e.target.value)}>
+                                <MenuItem value="MANHA">Manhã</MenuItem>
+                                <MenuItem value="TARDE">Tarde</MenuItem>
+                                <MenuItem value="INTEGRAL">Integral</MenuItem>
                             </Select>
                         </FormControl>
                         
