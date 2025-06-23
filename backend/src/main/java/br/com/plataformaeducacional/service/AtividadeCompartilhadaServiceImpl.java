@@ -37,7 +37,7 @@ public class AtividadeCompartilhadaServiceImpl implements AtividadeCompartilhada
                 .orElseThrow(() -> new EntityNotFoundException("Atividade não encontrada com ID: " + atividadeId));
 
         // Validar se o professor logado é o criador da atividade
-        if (!atividade.getProfessorCriador().getUserId().equals(professorId)) {
+        if (!atividade.getProfessorCriador().getId().equals(professorId)) {
             throw new AccessDeniedException("Apenas o criador pode compartilhar a atividade.");
         }
 
@@ -62,7 +62,7 @@ public class AtividadeCompartilhadaServiceImpl implements AtividadeCompartilhada
                 .orElseThrow(() -> new EntityNotFoundException("Atividade não encontrada com ID: " + atividadeId));
 
         // Validar se o professor logado é o criador da atividade
-        if (!atividade.getProfessorCriador().getUserId().equals(professorId)) {
+        if (!atividade.getProfessorCriador().getId().equals(professorId)) {
             throw new AccessDeniedException("Apenas o criador pode remover o compartilhamento da atividade.");
         }
 
@@ -160,13 +160,8 @@ public class AtividadeCompartilhadaServiceImpl implements AtividadeCompartilhada
             dto.setAtividadeCreatedAt(atividade.getCreatedAt());
 
             if (atividade.getProfessorCriador() != null) {
-                dto.setAtividadeProfessorCriadorId(atividade.getProfessorCriador().getUserId());
-                if (atividade.getProfessorCriador().getUser() != null) {
-                    dto.setAtividadeProfessorCriadorNome(atividade.getProfessorCriador().getUser().getNomeCompleto());
-                } else {
-                    // Fallback - Idealmente, carregar o User junto ou usar projeção
-                    dto.setAtividadeProfessorCriadorNome("Professor ID: " + atividade.getProfessorCriador().getUserId());
-                }
+                dto.setAtividadeProfessorCriadorId(atividade.getProfessorCriador().getId());
+                dto.setAtividadeProfessorCriadorNome(atividade.getProfessorCriador().getNomeCompleto());
             }
         }
         return dto;

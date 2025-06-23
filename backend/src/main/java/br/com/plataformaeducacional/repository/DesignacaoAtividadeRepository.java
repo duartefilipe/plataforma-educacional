@@ -11,16 +11,16 @@ import java.util.Optional;
 @Repository
 public interface DesignacaoAtividadeRepository extends JpaRepository<DesignacaoAtividade, Long> {
 
-    List<DesignacaoAtividade> findByAlunoUserIdOrderByDataDesignacaoDesc(Long alunoUserId);
+    List<DesignacaoAtividade> findByAlunoIdOrderByDataDesignacaoDesc(Long alunoId);
 
     @Query("SELECT da FROM DesignacaoAtividade da WHERE da.professorDesignador.id = :professorId")
     List<DesignacaoAtividade> findByProfessorDesignadorUserId(Long professorId);
 
     List<DesignacaoAtividade> findByAtividadeId(Long atividadeId);
 
-    Optional<DesignacaoAtividade> findByAtividadeIdAndAlunoUserId(Long atividadeId, Long alunoUserId);
+    Optional<DesignacaoAtividade> findByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
 
-    boolean existsByAtividadeIdAndAlunoUserId(Long atividadeId, Long alunoUserId);
+    boolean existsByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
 
     // Query para buscar atividades relevantes para um aluno:
     // 1. Atividades designadas diretamente a ele

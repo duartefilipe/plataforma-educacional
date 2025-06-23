@@ -104,7 +104,7 @@ public class AtividadeServiceImpl implements AtividadeService {
         if (!professorRepository.existsById(professorId)) {
             throw new EntityNotFoundException("Professor não encontrado com ID: " + professorId);
         }
-        List<Atividade> atividades = atividadeRepository.findByProfessorCriadorUserId(professorId);
+        List<Atividade> atividades = atividadeRepository.findByProfessorCriadorId(professorId);
         return atividades.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
@@ -178,7 +178,7 @@ public class AtividadeServiceImpl implements AtividadeService {
         }
 
         for (MatriculaAluno matricula : matriculas) {
-            boolean jaDesignada = designacaoAtividadeRepository.existsByAtividadeIdAndAlunoUserId(atividadeId, matricula.getAluno().getUserId());
+            boolean jaDesignada = designacaoAtividadeRepository.existsByAtividadeIdAndAlunoId(atividadeId, matricula.getAluno().getId());
             if (!jaDesignada) {
                 DesignacaoAtividade novaDesignacao = new DesignacaoAtividade(
                         atividade,
@@ -195,7 +195,7 @@ public class AtividadeServiceImpl implements AtividadeService {
         Atividade atividade = atividadeRepository.findById(atividadeId)
                 .orElseThrow(() -> new EntityNotFoundException("Atividade não encontrada com ID: " + atividadeId));
 
-        if (!atividade.getProfessorCriador().getUserId().equals(professorId)) {
+        if (!atividade.getProfessorCriador().getId().equals(professorId)) {
             // Poderia verificar se é ADMIN também, dependendo da regra
             throw new AccessDeniedException("Professor não tem permissão para acessar/modificar esta atividade.");
         }
@@ -223,18 +223,8 @@ public class AtividadeServiceImpl implements AtividadeService {
         AtividadeDTO dto = new AtividadeDTO();
         BeanUtils.copyProperties(atividade, dto);
         if (atividade.getProfessorCriador() != null) {
-            dto.setProfessorCriadorId(atividade.getProfessorCriador().getUserId());
-            // Para evitar consulta extra, pegamos o nome do User associado ao Professor
-            if (atividade.getProfessorCriador().getUser() != null) {
-                 dto.setProfessorCriadorNome(atividade.getProfessorCriador().getUser().getNomeCompleto());
-            } else {
-                 // Fallback caso o User não esteja carregado (Lazy Loading)
-                 // Considerar carregar explicitamente se necessário ou usar projeção
-                 Professor p = professorRepository.findById(atividade.getProfessorCriador().getUserId()).orElse(null);
-                 if (p != null && p.getUser() != null) {
-                     dto.setProfessorCriadorNome(p.getUser().getNomeCompleto());
-                 }
-            }
+            dto.setProfessorCriadorId(atividade.getProfessorCriador().getId());
+            dto.setProfessorCriadorNome(atividade.getProfessorCriador().getNomeCompleto());
         }
         return dto;
     }

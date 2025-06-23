@@ -50,7 +50,7 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
         if (!alunoRepository.existsById(alunoId)) {
             throw new EntityNotFoundException("Aluno não encontrado com ID: " + alunoId);
         }
-        List<DesignacaoAtividade> designacoes = designacaoRepository.findByAlunoUserIdOrderByDataDesignacaoDesc(alunoId);
+        List<DesignacaoAtividade> designacoes = designacaoRepository.findByAlunoIdOrderByDataDesignacaoDesc(alunoId);
         return designacoes.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
@@ -120,7 +120,7 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
         DesignacaoAtividade designacao = designacaoRepository.findById(designacaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Designação de atividade não encontrada com ID: " + designacaoId));
 
-        if (!designacao.getAluno().getUserId().equals(alunoId)) {
+        if (!designacao.getAluno().getId().equals(alunoId)) {
             throw new AccessDeniedException("Aluno não tem permissão para acessar esta designação.");
         }
         return designacao;
@@ -150,12 +150,8 @@ public class AlunoAtividadeServiceImpl implements AlunoAtividadeService {
 
         if (designacao.getProfessorDesignador() != null) {
             Professor professor = designacao.getProfessorDesignador();
-            dto.setProfessorDesignadorId(professor.getUserId());
-            if (professor.getUser() != null) {
-                dto.setProfessorDesignadorNome(professor.getUser().getNomeCompleto());
-            } else {
-                 dto.setProfessorDesignadorNome("Professor ID: " + professor.getUserId());
-            }
+            dto.setProfessorDesignadorId(professor.getId());
+            dto.setProfessorDesignadorNome(professor.getNomeCompleto());
         }
 
         // Não incluir caminho do arquivo de resposta no DTO

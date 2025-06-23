@@ -10,14 +10,14 @@ import java.util.Optional;
 @Repository
 public interface MatriculaAlunoRepository extends JpaRepository<MatriculaAluno, Long> {
 
-    List<MatriculaAluno> findByAlunoUserId(Long alunoUserId);
+    List<MatriculaAluno> findByAlunoId(Long alunoId);
 
     List<MatriculaAluno> findByEscolaId(Long escolaId);
 
     List<MatriculaAluno> findByTurmaId(Long turmaId);
 
-    Optional<MatriculaAluno> findByAlunoUserIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoUserId, Long escolaId, String turno, Integer anoLetivo);
+    Optional<MatriculaAluno> findByAlunoIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoId, Long escolaId, String turno, Integer anoLetivo);
 
-    void deleteByAlunoUserIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoUserId, Long escolaId, String turno, Integer anoLetivo);
+    void deleteByAlunoIdAndEscolaIdAndTurnoAndAnoLetivo(Long alunoId, Long escolaId, String turno, Integer anoLetivo);
 }
 

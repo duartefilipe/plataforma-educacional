@@ -14,18 +14,9 @@ import java.util.Set;
 @Table(name = "professores")
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@AllArgsConstructor
-public class Professor {
-
-    @Id
-    @EqualsAndHashCode.Include
-    private Long id;
-
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "id")
-    private User user;
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@PrimaryKeyJoinColumn(name = "user_id")
+public class Professor extends User {
 
     @Column(columnDefinition = "TEXT")
     private String disciplinas;
@@ -43,12 +34,14 @@ public class Professor {
     // private Set<DesignacaoAtividade> atividadesDesignadas;
 
     public Professor(User user, String disciplinas) {
-        this.user = user;
+        super();
+        this.setId(user.getId());
+        this.setNomeCompleto(user.getNomeCompleto());
+        this.setEmail(user.getEmail());
+        this.setSenha(user.getSenha());
+        this.setRole(user.getRole());
+        this.setAtivo(user.isAtivo());
         this.disciplinas = disciplinas;
-    }
-
-    public Professor(User user) {
-        this.user = user;
     }
 
     // Métodos utilitários para gerenciar lotações (opcional, mas útil)
@@ -63,7 +56,7 @@ public class Professor {
     }
 
     public Long getUserId() {
-        return this.user != null ? this.user.getId() : null;
+        return this.getId();
     }
 }
 

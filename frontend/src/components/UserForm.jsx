@@ -29,14 +29,14 @@ const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
         }
     }, [isEdit, initialData]);
 
-    // Efeito para buscar escolas quando o perfil for Professor ou Aluno (na criação)
+    // Efeito para buscar escolas quando o perfil for Professor ou Aluno
     useEffect(() => {
-        if (!isEdit && (role === 'PROFESSOR' || role === 'ALUNO')) {
+        if (role === 'PROFESSOR' || role === 'ALUNO') {
             api.get('/escolas')
                 .then(response => setEscolas(response.data))
                 .catch(error => console.error("Erro ao buscar escolas", error));
         }
-    }, [isEdit, role]);
+    }, [role]);
 
     // Efeito para buscar as turmas da escola do aluno (na edição)
     useEffect(() => {
@@ -93,14 +93,10 @@ const UserForm = ({ initialData, onSubmit, isEdit = false }) => {
                 {showEscolaSelect && (
                     <FormControl fullWidth required>
                         <InputLabel>Escola</InputLabel>
-                        <Select value={escolaId} label="Escola" onChange={(e) => setEscolaId(e.target.value)} disabled={isEdit}>
-                             {isEdit && initialData?.escolaNome ? 
-                                <MenuItem key={initialData.escolaId} value={initialData.escolaId}>{initialData.escolaNome}</MenuItem> 
-                                : 
-                                escolas.map((escola) => (
-                                    <MenuItem key={escola.id} value={escola.id}>{escola.nome}</MenuItem>
-                                ))
-                             }
+                        <Select value={escolaId} label="Escola" onChange={(e) => setEscolaId(e.target.value)}>
+                             {escolas.map((escola) => (
+                                <MenuItem key={escola.id} value={escola.id}>{escola.nome}</MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
                 )}

@@ -16,18 +16,9 @@ import java.util.Set;
 @Table(name = "alunos")
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Aluno {
-
-    @Id
-    @EqualsAndHashCode.Include
-    private Long userId;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // Maps the userId field to the User's ID
-    @JoinColumn(name = "user_id")
-    @ToString.Exclude // Evitar recursão
-    private User user;
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@PrimaryKeyJoinColumn(name = "user_id")
+public class Aluno extends User {
 
     @PastOrPresent(message = "Data de nascimento deve ser no passado ou presente")
     @Column(name = "data_nascimento")
@@ -51,7 +42,13 @@ public class Aluno {
     // private Set<DesignacaoAtividade> atividadesDesignadas;
 
     public Aluno(User user) {
-        this.user = user;
+        super();
+        this.setId(user.getId());
+        this.setNomeCompleto(user.getNomeCompleto());
+        this.setEmail(user.getEmail());
+        this.setSenha(user.getSenha());
+        this.setRole(user.getRole());
+        this.setAtivo(user.isAtivo());
     }
 
     // Métodos utilitários para gerenciar matrículas (opcional, mas útil)

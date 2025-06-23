@@ -49,7 +49,7 @@ const EditarUsuario = () => {
         <UserForm
           initialData={usuario}
           onSubmit={handleSubmit}
-          isEditMode={true}
+          isEdit={true}
         />
       )}
     </Container>

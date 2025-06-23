@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -129,7 +130,11 @@ public class UserServiceImpl implements UserService {
                     .map(this::toUserResponseDTO)
                     .collect(Collectors.toList());
         }
-        return userRepository.findProfessoresByEscolaId(escolaId).stream()
+        List<User> professores = userRepository.findProfessoresByEscolaId(escolaId);
+        if (professores == null) {
+            return new ArrayList<>();
+        }
+        return professores.stream()
                 .map(this::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -168,13 +173,13 @@ public class UserServiceImpl implements UserService {
         dto.setRole(user.getRole());
         dto.setAtivo(user.isAtivo());
 
-        if (user.getRole() == Role.PROFESSOR) {
-            lotacaoProfessorRepository.findByProfessorUserId(user.getId()).stream().findFirst().ifPresent(lotacao -> {
+        if (user instanceof Professor professor) {
+            professor.getLotacoes().stream().findFirst().ifPresent(lotacao -> {
                 dto.setEscolaId(lotacao.getEscola().getId());
                 dto.setEscolaNome(lotacao.getEscola().getNome());
             });
-        } else if (user.getRole() == Role.ALUNO) {
-            matriculaAlunoRepository.findByAlunoUserId(user.getId()).stream().findFirst().ifPresent(matricula -> {
+        } else if (user instanceof Aluno aluno) {
+            aluno.getMatriculas().stream().findFirst().ifPresent(matricula -> {
                 dto.setEscolaId(matricula.getEscola().getId());
                 dto.setEscolaNome(matricula.getEscola().getNome());
                 if (matricula.getTurma() != null) {

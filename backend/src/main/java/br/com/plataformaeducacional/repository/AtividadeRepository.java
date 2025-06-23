@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface AtividadeRepository extends JpaRepository<Atividade, Long> {
 
-    @Query("SELECT a FROM Atividade a WHERE a.professorCriador.id = :professorUserId")
-    List<Atividade> findByProfessorCriadorUserId(Long professorUserId);
+    @Query("SELECT a FROM Atividade a WHERE a.professorCriador.id = :professorId")
+    List<Atividade> findByProfessorCriadorId(Long professorId);
 
 }
 

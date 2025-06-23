@@ -11,13 +11,13 @@ import java.util.List;
 @Repository
 public interface LotacaoProfessorRepository extends JpaRepository<LotacaoProfessor, Long> {
 
-    @Query("SELECT l FROM LotacaoProfessor l WHERE l.professor.id = :professorUserId")
-    List<LotacaoProfessor> findByProfessorUserId(Long professorUserId);
+    @Query("SELECT l FROM LotacaoProfessor l WHERE l.professor.id = :professorId")
+    List<LotacaoProfessor> findByProfessorId(Long professorId);
 
     List<LotacaoProfessor> findByEscolaId(Long escolaId);
 
     @Modifying
-    @Query("DELETE FROM LotacaoProfessor l WHERE l.professor.id = :professorUserId AND l.escola.id = :escolaId")
-    void deleteByProfessorUserIdAndEscolaId(Long professorUserId, Long escolaId);
+    @Query("DELETE FROM LotacaoProfessor l WHERE l.professor.id = :professorId AND l.escola.id = :escolaId")
+    void deleteByProfessorIdAndEscolaId(Long professorId, Long escolaId);
 }
 

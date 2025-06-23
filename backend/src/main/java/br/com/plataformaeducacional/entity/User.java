@@ -20,6 +20,7 @@ import java.util.Collections;
 
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
 public class User implements UserDetails {

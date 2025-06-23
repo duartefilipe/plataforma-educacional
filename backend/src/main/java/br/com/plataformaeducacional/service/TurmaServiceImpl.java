@@ -63,9 +63,9 @@ public class TurmaServiceImpl implements TurmaService {
             dto.setEscolaId(turma.getEscola().getId());
             dto.setNomeEscola(turma.getEscola().getNome());
         }
-        if (turma.getProfessor() != null && turma.getProfessor().getUser() != null) {
-            dto.setProfessorId(turma.getProfessor().getUser().getId());
-            dto.setProfessorNome(turma.getProfessor().getUser().getNomeCompleto());
+        if (turma.getProfessor() != null) {
+            dto.setProfessorId(turma.getProfessor().getId());
+            dto.setProfessorNome(turma.getProfessor().getNomeCompleto());
         }
         return dto;
     }
