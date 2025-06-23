@@ -21,6 +21,7 @@ import ProfessorDashboard from './pages/ProfessorDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Container } from '@mui/material';
 import Navbar from './components/Navbar';
+import EditarTurma from './pages/EditarTurma';
 
 const theme = createTheme({
   palette: {
@@ -52,6 +53,7 @@ function App() {
             <Route path="/listar-turmas" element={<ProtectedLayout><ListarTurmas /></ProtectedLayout>} />
             <Route path="/editar-usuario/:id" element={<ProtectedLayout><EditarUsuario /></ProtectedLayout>} />
             <Route path="/editar-escola/:id" element={<ProtectedLayout><EditarEscola /></ProtectedLayout>} />
+            <Route path="/editar-turma/:id" element={<ProtectedLayout><EditarTurma /></ProtectedLayout>} />
             
             {/* Rotas do Professor */}
             <Route path="/professor" element={<ProtectedLayout><ProfessorDashboard /></ProtectedLayout>} />

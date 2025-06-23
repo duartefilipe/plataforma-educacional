@@ -27,4 +27,10 @@ public class TurmaController {
     public ResponseEntity<List<TurmaDTO>> getAllTurmas(@RequestParam(required = false) Long escolaId) {
         return ResponseEntity.ok(turmaService.getAllTurmas(escolaId));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TurmaDTO> updateTurma(@PathVariable Long id, @RequestBody @Valid TurmaDTO turmaDTO) {
+        TurmaDTO updated = turmaService.updateTurma(id, turmaDTO);
+        return ResponseEntity.ok(updated);
+    }
 } 

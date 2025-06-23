@@ -54,6 +54,29 @@ public class TurmaServiceImpl implements TurmaService {
         return turmas.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public TurmaDTO updateTurma(Long id, TurmaDTO turmaDTO) {
+        Turma turma = turmaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Turma não encontrada com o id: " + id));
+
+        Escola escola = escolaRepository.findById(turmaDTO.getEscolaId())
+                .orElseThrow(() -> new EntityNotFoundException("Escola não encontrada com o id: " + turmaDTO.getEscolaId()));
+
+        Professor professor = null;
+        if (turmaDTO.getProfessorId() != null) {
+            professor = professorRepository.findById(turmaDTO.getProfessorId())
+                    .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado com o id: " + turmaDTO.getProfessorId()));
+        }
+
+        turma.setNome(turmaDTO.getNome());
+        turma.setAnoLetivo(turmaDTO.getAnoLetivo());
+        turma.setEscola(escola);
+        turma.setProfessor(professor);
+
+        turma = turmaRepository.save(turma);
+        return toDTO(turma);
+    }
+
     private TurmaDTO toDTO(Turma turma) {
         TurmaDTO dto = new TurmaDTO();
         dto.setId(turma.getId());
