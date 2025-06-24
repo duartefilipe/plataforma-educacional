@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@mui/icons-material": "^7.1.2"
+    "@mui/icons-material": "^7.1.2",
+    "react-quill": "^2.0.0"
   }
 }

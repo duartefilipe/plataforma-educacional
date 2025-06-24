@@ -31,6 +31,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import br.com.plataformaeducacional.enums.Role;
+import br.com.plataformaeducacional.entity.LotacaoProfessor;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +63,19 @@ public class AtividadeServiceImpl implements AtividadeService {
         Atividade atividade = new Atividade();
         BeanUtils.copyProperties(atividadeDTO, atividade, "id", "professorCriadorId", "professorCriadorNome", "createdAt", "updatedAt", "caminhoArquivo", "nomeArquivoOriginal", "tipoMimeArquivo", "tamanhoArquivo");
         atividade.setProfessorCriador(professor);
+
+        // Se não for ADMIN, força a escola do professor
+        if (atividadeDTO.getEscolaId() == null && professor.getLotacoes() != null && !professor.getLotacoes().isEmpty()) {
+            LotacaoProfessor lotacao = professor.getLotacoes().iterator().next();
+            atividade.setEscola(lotacao.getEscola());
+        } else if (atividadeDTO.getEscolaId() != null) {
+            Escola novaEscola = escolaRepository.findById(atividadeDTO.getEscolaId())
+                .orElseThrow(() -> new EntityNotFoundException("Escola não encontrada"));
+            atividade.setEscola(novaEscola);
+        }
+
+        // Salva o texto corretamente
+        atividade.setConteudoTexto(atividadeDTO.getConteudoTexto());
 
         if (arquivo != null && !arquivo.isEmpty()) {
             if (!"ARQUIVO_UPLOAD".equalsIgnoreCase(atividade.getTipoConteudo())) {
@@ -129,17 +143,26 @@ public class AtividadeServiceImpl implements AtividadeService {
         }
         // Atualiza campos básicos, exceto os relacionados ao arquivo e criador
         BeanUtils.copyProperties(atividadeDTO, atividadeExistente, "id", "professorCriadorId", "professorCriadorNome", "createdAt", "updatedAt", "caminhoArquivo", "nomeArquivoOriginal", "tipoMimeArquivo", "tamanhoArquivo", "professorCriador", "escola");
-        // Permitir alterar professor e escola
-        if (atividadeDTO.getProfessorId() != null) {
-            Professor novoProfessor = professorRepository.findById(atividadeDTO.getProfessorId())
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Professor não encontrado"));
-            atividadeExistente.setProfessorCriador(novoProfessor);
+        // Permitir alterar professor e escola apenas se for ADMIN
+        if (role == Role.ADMIN) {
+            if (atividadeDTO.getProfessorId() != null) {
+                Professor novoProfessor = professorRepository.findById(atividadeDTO.getProfessorId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Professor não encontrado"));
+                atividadeExistente.setProfessorCriador(novoProfessor);
+            }
+            if (atividadeDTO.getEscolaId() != null) {
+                Escola novaEscola = escolaRepository.findById(atividadeDTO.getEscolaId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Escola não encontrada"));
+                atividadeExistente.setEscola(novaEscola);
+            }
         }
-        if (atividadeDTO.getEscolaId() != null) {
-            Escola novaEscola = escolaRepository.findById(atividadeDTO.getEscolaId())
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Escola não encontrada"));
-            atividadeExistente.setEscola(novaEscola);
+        // Se não for ADMIN, força a escola do professor
+        if (role != Role.ADMIN && atividadeExistente.getProfessorCriador() != null && atividadeExistente.getProfessorCriador().getLotacoes() != null && !atividadeExistente.getProfessorCriador().getLotacoes().isEmpty()) {
+            LotacaoProfessor lotacao = atividadeExistente.getProfessorCriador().getLotacoes().iterator().next();
+            atividadeExistente.setEscola(lotacao.getEscola());
         }
+        // Salva o texto corretamente
+        atividadeExistente.setConteudoTexto(atividadeDTO.getConteudoTexto());
         // Lógica para atualizar/substituir arquivo
         if (arquivo != null && !arquivo.isEmpty()) {
             if (!"ARQUIVO_UPLOAD".equalsIgnoreCase(atividadeExistente.getTipoConteudo())) {
