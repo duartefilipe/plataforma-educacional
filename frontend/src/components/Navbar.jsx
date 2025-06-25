@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Menu, MenuItem, Avatar, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -15,6 +16,8 @@ const Navbar = () => {
     const [anchorElTurmas, setAnchorElTurmas] = useState(null);
     const [anchorElAtividades, setAnchorElAtividades] = useState(null);
     const [anchorElAtividadesProf, setAnchorElAtividadesProf] = useState(null);
+    const [anchorElPerfil, setAnchorElPerfil] = useState(null);
+    const [openPerfil, setOpenPerfil] = useState(false);
 
     const handleMenuOpen = (event, setAnchorEl) => {
         setAnchorEl(event.currentTarget);
@@ -86,10 +89,7 @@ const Navbar = () => {
                         <Button color="inherit" onClick={e => handleMenuOpen(e, setAnchorElAtividadesProf)} endIcon={<ArrowDropDownIcon />}>Atividades</Button>
                         <Menu anchorEl={anchorElAtividadesProf} open={Boolean(anchorElAtividadesProf)} onClose={() => handleMenuClose(setAnchorElAtividadesProf)}>
                             <MenuItem component={Link} to="/professor/cadastrar-atividade" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Cadastrar Atividade</MenuItem>
-                            <MenuItem component={Link} to="/cadastrar-atividade-compartilhada" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Compartilhar Atividade</MenuItem>
                             <MenuItem component={Link} to="/professor/atividades" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Minhas Atividades</MenuItem>
-                            <MenuItem component={Link} to="/professor/atividades-compartilhadas" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Compartilhadas</MenuItem>
-                            <MenuItem component={Link} to="/professor/atividades-favoritas" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Favoritas</MenuItem>
                             <MenuItem component={Link} to="/professor/tarefas" onClick={() => handleMenuClose(setAnchorElAtividadesProf)}>Tarefas</MenuItem>
                         </Menu>
                         <Button color="inherit" component={Link} to="/professor/escolas">
@@ -97,12 +97,33 @@ const Navbar = () => {
                         </Button>
                     </>
                 )}
+                {user && user.role === 'ALUNO' && (
+                    <Button color="inherit" component={Link} to="/aluno/tarefas">
+                        Minhas Tarefas
+                    </Button>
+                )}
                 {user && (
                     <>
-                        <Typography sx={{ mx: 2 }}>{user.email}</Typography>
-                        <Button color="inherit" onClick={logout}>
-                            Logout
-                        </Button>
+                        <IconButton color="inherit" onClick={e => setAnchorElPerfil(e.currentTarget)}>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                                <AccountCircleIcon />
+                            </Avatar>
+                        </IconButton>
+                        <Menu anchorEl={anchorElPerfil} open={Boolean(anchorElPerfil)} onClose={() => setAnchorElPerfil(null)}>
+                            <MenuItem onClick={() => { setOpenPerfil(true); setAnchorElPerfil(null); }}>Perfil</MenuItem>
+                            <MenuItem onClick={logout}>Logout</MenuItem>
+                        </Menu>
+                        <Dialog open={openPerfil} onClose={() => setOpenPerfil(false)}>
+                            <DialogTitle>Dados do Usuário</DialogTitle>
+                            <DialogContent>
+                                <Typography><strong>Nome:</strong> {user.nomeCompleto || '-'}</Typography>
+                                <Typography><strong>Email:</strong> {user.email}</Typography>
+                                <Typography><strong>Perfil:</strong> {user.role}</Typography>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={() => setOpenPerfil(false)}>Fechar</Button>
+                            </DialogActions>
+                        </Dialog>
                     </>
                 )}
             </Toolbar>

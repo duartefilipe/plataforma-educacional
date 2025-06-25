@@ -95,7 +95,7 @@ const CadastrarAtividade = () => {
   const [uploading, setUploading] = useState(false);
 
   // Adicionar estado para tipo de criação
-  const [tipoCriacao, setTipoCriacao] = useState('NOVA'); // 'NOVA' ou 'COMPARTILHAR'
+  const [modoCriacao, setModoCriacao] = useState('MANUAL'); // 'MANUAL' ou 'IA'
   const [atividadesExistentes, setAtividadesExistentes] = useState([]);
   const [atividadeCompartilharId, setAtividadeCompartilharId] = useState('');
 
@@ -105,14 +105,21 @@ const CadastrarAtividade = () => {
   const [professores, setProfessores] = useState([]);
   const [escolas, setEscolas] = useState([]);
 
+  // Novos estados para IA
+  const [anoIA, setAnoIA] = useState('');
+  const [idadeIA, setIdadeIA] = useState('');
+  const [disciplinaIA, setDisciplinaIA] = useState('');
+  const [tipoIA, setTipoIA] = useState('');
+  const [loadingIA, setLoadingIA] = useState(false);
+
   // Buscar atividades existentes se for compartilhar
   useEffect(() => {
-    if (tipoCriacao === 'COMPARTILHAR') {
+    if (modoCriacao === 'COMPARTILHAR') {
       api.get('/atividades/professor/me').then(res => {
         setAtividadesExistentes(res.data);
       });
     }
-  }, [tipoCriacao]);
+  }, [modoCriacao]);
 
   // Buscar professores e escolas se for ADMIN
   useEffect(() => {
@@ -178,17 +185,17 @@ const CadastrarAtividade = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!titulo.trim() && tipoCriacao === 'NOVA') {
+    if (!titulo.trim() && modoCriacao === 'MANUAL') {
       showSnackbar('Título é obrigatório', 'error');
       return;
     }
-    if (tipoCriacao === 'COMPARTILHAR' && !atividadeCompartilharId) {
+    if (modoCriacao === 'COMPARTILHAR' && !atividadeCompartilharId) {
       showSnackbar('Selecione uma atividade para compartilhar', 'error');
       return;
     }
     setLoading(true);
     try {
-      if (tipoCriacao === 'COMPARTILHAR') {
+      if (modoCriacao === 'COMPARTILHAR') {
         // Compartilhar atividade existente
         await api.post(`/atividades/${atividadeCompartilharId}/compartilhar`, {});
         showSnackbar('Atividade compartilhada com sucesso!', 'success');
@@ -395,6 +402,47 @@ const CadastrarAtividade = () => {
     </Paper>
   );
 
+  // Função para gerar atividade com IA
+  const handleGerarIA = async () => {
+    if (!anoIA || !idadeIA || !disciplinaIA || !tipoIA) {
+      showSnackbar('Preencha todos os campos para gerar com IA', 'warning');
+      return;
+    }
+    setLoadingIA(true);
+    try {
+      const res = await api.post('/atividades/gerar-smart', {
+        ano: anoIA,
+        idade: idadeIA,
+        disciplina: disciplinaIA,
+        tipo: tipoIA
+      });
+      if (res.data?.conteudo) {
+        setEditorContent(res.data.conteudo);
+        // Gerar título automaticamente
+        const tituloGerado = `Atividade de ${disciplinaIA.charAt(0).toUpperCase() + disciplinaIA.slice(1)} - ${anoIA}º ano - ${tipoIA.charAt(0).toUpperCase() + tipoIA.slice(1)}`;
+        setTitulo(tituloGerado);
+        showSnackbar('Conteúdo gerado com sucesso!', 'success');
+      } else {
+        showSnackbar('Não foi possível gerar o conteúdo.', 'error');
+      }
+    } catch (err) {
+      showSnackbar('Erro ao gerar conteúdo com IA', 'error');
+    } finally {
+      setLoadingIA(false);
+    }
+  };
+
+  // Função para embelezar texto
+  const embelezarTexto = () => {
+    let texto = editorContent;
+    // Remove todas as tags HTML e converte quebras de linha em espaço
+    texto = texto.replace(/<[^>]+>/g, '').replace(/\n+/g, ' ');
+    // Quebra por ponto final, interrogação ou exclamação seguidos de espaço ou fim de linha
+    const paragrafos = texto.split(/(?<=[.!?])\s+/g).map(p => p.trim()).filter(Boolean);
+    const html = paragrafos.map(p => `<p>${p}</p>`).join('');
+    setEditorContent(html);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Header */}
@@ -446,14 +494,10 @@ const CadastrarAtividade = () => {
                 </Typography>
                 
                 <FormControl fullWidth margin="normal" size="small">
-                  <InputLabel>Tipo de Criação</InputLabel>
-                  <Select
-                    value={tipoCriacao}
-                    label="Tipo de Criação"
-                    onChange={e => setTipoCriacao(e.target.value)}
-                  >
-                    <MenuItem value="NOVA">Nova Atividade</MenuItem>
-                    <MenuItem value="COMPARTILHAR">Compartilhar Atividade</MenuItem>
+                  <InputLabel>Modo de Criação</InputLabel>
+                  <Select value={modoCriacao} label="Modo de Criação" onChange={e => setModoCriacao(e.target.value)}>
+                    <MenuItem value="MANUAL">Manual</MenuItem>
+                    <MenuItem value="IA">IA</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -468,45 +512,87 @@ const CadastrarAtividade = () => {
                   size="small"
                 />
 
-                <FormControl fullWidth margin="normal" size="small">
-                  <InputLabel>Tipo de Conteúdo</InputLabel>
-                  <Select
-                    value={tipoConteudo}
-                    label="Tipo de Conteúdo"
-                    onChange={(e) => setTipoConteudo(e.target.value)}
-                  >
-                    <MenuItem value="TEXTO">Texto Rico</MenuItem>
-                    <MenuItem value="ARQUIVO_UPLOAD">Arquivo</MenuItem>
-                  </Select>
-                </FormControl>
-
-                {tipoConteudo === 'ARQUIVO_UPLOAD' && (
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      fullWidth
-                      startIcon={<CloudUpload />}
-                      size="small"
-                    >
-                      Anexar Arquivo
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        hidden
-                        onChange={handleFileUpload}
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif"
-                      />
-                    </Button>
-                    {arquivo && (
-                      <Chip 
-                        icon={<AttachFile />} 
-                        label={arquivo.name} 
-                        onDelete={() => setArquivo(null)}
-                        sx={{ mt: 1, width: '100%' }}
-                      />
+                {modoCriacao === 'MANUAL' && (
+                  <>
+                    <FormControl fullWidth margin="normal" size="small">
+                      <InputLabel>Tipo de Conteúdo</InputLabel>
+                      <Select
+                        value={tipoConteudo}
+                        label="Tipo de Conteúdo"
+                        onChange={(e) => setTipoConteudo(e.target.value)}
+                      >
+                        <MenuItem value="TEXTO">Texto Rico</MenuItem>
+                        <MenuItem value="ARQUIVO_UPLOAD">Arquivo</MenuItem>
+                      </Select>
+                    </FormControl>
+                    {tipoConteudo === 'ARQUIVO_UPLOAD' && (
+                      <Box sx={{ mt: 2 }}>
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          fullWidth
+                          startIcon={<CloudUpload />}
+                          size="small"
+                        >
+                          Anexar Arquivo
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            hidden
+                            onChange={handleFileUpload}
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif"
+                          />
+                        </Button>
+                        {arquivo && (
+                          <Chip 
+                            icon={<AttachFile />} 
+                            label={arquivo.name} 
+                            onDelete={() => setArquivo(null)}
+                            sx={{ mt: 1, width: '100%' }}
+                          />
+                        )}
+                      </Box>
                     )}
-                  </Box>
+                  </>
+                )}
+
+                {modoCriacao === 'IA' && (
+                  <>
+                    <FormControl fullWidth margin="normal" size="small">
+                      <InputLabel>Ano</InputLabel>
+                      <Select value={anoIA} label="Ano" onChange={e => setAnoIA(e.target.value)}>
+                        {[1,2,3,4,5].map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <FormControl fullWidth margin="normal" size="small">
+                      <InputLabel>Idade</InputLabel>
+                      <Select value={idadeIA} label="Idade" onChange={e => setIdadeIA(e.target.value)}>
+                        {[1,2,3,4,5,6,7,8,9].map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <FormControl fullWidth margin="normal" size="small">
+                      <InputLabel>Disciplina</InputLabel>
+                      <Select value={disciplinaIA} label="Disciplina" onChange={e => setDisciplinaIA(e.target.value)}>
+                        {['portugues','matematica','historia'].map(d => <MenuItem key={d} value={d}>{d.charAt(0).toUpperCase()+d.slice(1)}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <FormControl fullWidth margin="normal" size="small">
+                      <InputLabel>Tipo</InputLabel>
+                      <Select value={tipoIA} label="Tipo" onChange={e => setTipoIA(e.target.value)}>
+                        {['teorico','pratico'].map(t => <MenuItem key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      sx={{ mt: 1, mb: 2 }}
+                      onClick={handleGerarIA}
+                      disabled={loadingIA}
+                    >
+                      {loadingIA ? 'Gerando...' : 'Gerar atividade com IA'}
+                    </Button>
+                  </>
                 )}
 
                 {/* Campo de seleção de professor - apenas para ADMIN */}
@@ -569,8 +655,20 @@ const CadastrarAtividade = () => {
               <CardContent sx={{ p: 0 }}>
                 {renderToolbar()}
                 <Box sx={{ p: 3 }}>
-                  {previewMode ? renderPreview() : renderEditor()}
+                  {previewMode ? renderPreview() : (
+                    <ReactQuill
+                      theme="snow"
+                      value={editorContent}
+                      onChange={setEditorContent}
+                      style={{ height: '55vh', background: '#fff' }}
+                      placeholder="Digite o texto da atividade..."
+                      readOnly={modoCriacao === 'IA'}
+                    />
+                  )}
                 </Box>
+                <Button variant="outlined" color="primary" sx={{ mt: 2, mb: 2 }} onClick={embelezarTexto}>
+                  Embelezar Texto
+                </Button>
               </CardContent>
             </Card>
           </Grid>

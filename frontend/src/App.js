@@ -23,15 +23,15 @@ import { Container } from '@mui/material';
 import Navbar from './components/Navbar';
 import EditarTurma from './pages/EditarTurma';
 import ListarAtividadesCompartilhadas from './pages/ListarAtividadesCompartilhadas';
-import AtividadesFavoritas from './pages/AtividadesFavoritas';
 import AdminAtividadesCompartilhadas from './pages/AdminAtividadesCompartilhadas';
 import CadastrarAtividadeCompartilhada from './pages/CadastrarAtividadeCompartilhada';
-import ProfessorEscolas from './pages/ProfessorEscolas';
 import ProfessorTurmas from './pages/ProfessorTurmas';
 import ProfessorAtividadesTurma from './pages/ProfessorAtividadesTurma';
 import VincularProfessorEscola from './pages/VincularProfessorEscola';
 import ProfessorAtividades from './pages/ProfessorAtividades';
 import ProfessorTarefas from './pages/ProfessorTarefas';
+import ProfessorEscolas from './pages/ProfessorEscolas';
+import AlunoTarefas from './pages/AlunoTarefas';
 
 const theme = createTheme({
   palette: {
@@ -75,17 +75,16 @@ function App() {
             <Route path="/professor/editar-atividade/:id" element={<ProtectedLayout><EditarAtividade /></ProtectedLayout>} />
             <Route path="/professor/designar-atividade/:id" element={<ProtectedLayout><DesignarAtividade /></ProtectedLayout>} />
             <Route path="/professor/atividades" element={<ProtectedLayout><ProfessorAtividades /></ProtectedLayout>} />
-            <Route path="/professor/atividades-compartilhadas" element={<ProtectedLayout><ListarAtividadesCompartilhadas /></ProtectedLayout>} />
-            <Route path="/professor/atividades-favoritas" element={<ProtectedLayout><AtividadesFavoritas /></ProtectedLayout>} />
             <Route path="/professor/tarefas" element={<ProtectedLayout><ProfessorTarefas /></ProtectedLayout>} />
             {user?.role === 'ADMIN' && (
               <Route path="/admin/atividades-compartilhadas" element={<ProtectedLayout><AdminAtividadesCompartilhadas /></ProtectedLayout>} />
             )}
-            <Route path="/cadastrar-atividade-compartilhada" element={<ProtectedLayout><CadastrarAtividadeCompartilhada /></ProtectedLayout>} />
-            <Route path="/professor/escolas" element={<ProtectedLayout><ProfessorEscolas /></ProtectedLayout>} />
-            <Route path="/professor/escola/:escolaId/turmas" element={<ProtectedLayout><ProfessorTurmas /></ProtectedLayout>} />
             <Route path="/professor/turma/:turmaId/atividades" element={<ProtectedLayout><ProfessorAtividadesTurma /></ProtectedLayout>} />
             <Route path="/admin/vincular-professor-escola" element={<ProtectedLayout allowedRoles={['ADMIN']}><VincularProfessorEscola /></ProtectedLayout>} />
+            <Route path="/professor/escolas" element={<ProtectedLayout><ProfessorEscolas /></ProtectedLayout>} />
+            <Route path="/professor/escola/:escolaId/turmas" element={<ProtectedLayout><ProfessorTurmas /></ProtectedLayout>} />
+            {/* Rota do Aluno */}
+            <Route path="/aluno/tarefas" element={<ProtectedLayout allowedRoles={['ALUNO']}><AlunoTarefas /></ProtectedLayout>} />
           </Routes>
         </Container>
       </div>

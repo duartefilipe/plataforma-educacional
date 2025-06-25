@@ -95,6 +95,8 @@ const EditarAtividade = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [compartilhada, setCompartilhada] = useState(false);
+  const [erroFavorito, setErroFavorito] = useState(false);
+  const [erroRemoverCompartilhamento, setErroRemoverCompartilhamento] = useState('');
 
   // Estados do editor
   const [editorContent, setEditorContent] = useState('');
@@ -411,6 +413,7 @@ const EditarAtividade = () => {
   const handleToggleCompartilhada = async (e) => {
     const checked = e.target.checked;
     setCompartilhada(checked);
+    setErroRemoverCompartilhamento('');
     try {
       if (checked) {
         await axiosConfig.post(`/atividades/compartilhadas/compartilhar/${id}`, { atividadeId: Number(id) });
@@ -420,9 +423,30 @@ const EditarAtividade = () => {
         showSnackbar('Compartilhamento removido!', 'info');
       }
     } catch (err) {
-      showSnackbar('Erro ao alterar compartilhamento: ' + (err.response?.data?.message || err.message), 'error');
+      if (err.response?.data?.message?.includes('atividade_favorita')) {
+        setErroFavorito(true);
+      } else if (err.response?.status === 403) {
+        setErroRemoverCompartilhamento('Você não tem permissão para remover este compartilhamento. Caso acredite ser um erro, contate o administrador.');
+      } else if (err.response?.status === 404) {
+        setErroRemoverCompartilhamento('Compartilhamento não encontrado. Ele pode já ter sido removido.');
+      } else if (err.response?.status === 500) {
+        setErroRemoverCompartilhamento('Ocorreu um erro interno ao tentar remover o compartilhamento. Por favor, tente novamente mais tarde ou contate o suporte.');
+      } else {
+        setErroRemoverCompartilhamento('Erro ao alterar compartilhamento: ' + (err.response?.data?.message || err.message));
+      }
       setCompartilhada(!checked); // Reverte visualmente
     }
+  };
+
+  // Substitua a função formatarTexto por uma que gera parágrafos HTML
+  const embelezarTexto = () => {
+    let texto = editorContent;
+    // Remove todas as tags HTML e converte quebras de linha em espaço
+    texto = texto.replace(/<[^>]+>/g, '').replace(/\n+/g, ' ');
+    // Quebra por ponto final, interrogação, exclamação OU por quebra de linha
+    const paragrafos = texto.split(/(?<=[.!?])\s+|\n+/g).map(p => p.trim()).filter(Boolean);
+    const html = paragrafos.map(p => `<p>${p}</p>`).join('');
+    setEditorContent(html);
   };
 
   if (loading) {
@@ -609,6 +633,9 @@ const EditarAtividade = () => {
                 <Box sx={{ p: 3 }}>
                   {previewMode ? renderPreview() : renderEditor()}
                 </Box>
+                <Button variant="outlined" color="primary" sx={{ mt: 2, mb: 2 }} onClick={embelezarTexto}>
+                  Embelezar Texto
+                </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -660,6 +687,18 @@ const EditarAtividade = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {erroFavorito && (
+        <Alert severity="error" sx={{ my: 2 }}>
+          Não é possível alterar ou remover uma atividade que está favoritada por algum usuário. Peça para remover dos favoritos antes de tentar novamente.
+        </Alert>
+      )}
+
+      {erroRemoverCompartilhamento && (
+        <Alert severity="error" sx={{ my: 2, fontSize: '1rem', fontWeight: 500, border: '1px solid #f44336', background: '#fff0f0' }}>
+          {erroRemoverCompartilhamento}
+        </Alert>
+      )}
     </Box>
   );
 };

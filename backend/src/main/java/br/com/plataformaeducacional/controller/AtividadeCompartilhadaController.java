@@ -31,8 +31,16 @@ public class AtividadeCompartilhadaController {
     @DeleteMapping("/remover/{atividadeId}")
     @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
     public ResponseEntity<Void> removerCompartilhamento(@PathVariable Long atividadeId, @AuthenticationPrincipal User user) {
-        atividadeCompartilhadaService.removerCompartilhamento(atividadeId, user.getId());
-        return ResponseEntity.noContent().build();
+        try {
+            atividadeCompartilhadaService.removerCompartilhamento(atividadeId, user.getId());
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/{id}")

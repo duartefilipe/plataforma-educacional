@@ -16,6 +16,9 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.professorDesignador.id = :professorId")
     List<Tarefa> findByProfessorDesignadorUserId(Long professorId);
 
+    @Query("SELECT t FROM Tarefa t JOIN t.aluno a JOIN a.matriculas m WHERE t.professorDesignador.id = :professorId AND m.turma.id = :turmaId")
+    List<Tarefa> findByProfessorDesignadorUserIdAndTurmaId(Long professorId, Long turmaId);
+
     List<Tarefa> findByAtividadeId(Long atividadeId);
 
     Optional<Tarefa> findByAtividadeIdAndAlunoId(Long atividadeId, Long alunoId);
@@ -31,5 +34,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     // Esta lógica pode ser melhor implementada no Service layer, combinando resultados.
     @Query("SELECT t FROM Tarefa t JOIN t.aluno a JOIN a.matriculas m JOIN m.turma turma JOIN turma.escola e WHERE a.id = :alunoId")
     List<Tarefa> findTarefasDasEscolasDoAluno(Long alunoId);
+
+    void deleteByAtividadeId(Long atividadeId);
 }
 

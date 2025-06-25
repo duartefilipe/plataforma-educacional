@@ -202,6 +202,8 @@ public class AtividadeServiceImpl implements AtividadeService {
     @Transactional
     public void deletarAtividade(Long id, Long professorId) throws IOException {
         Atividade atividade = findAtividadeByIdAndProfessor(id, professorId);
+        // Deleta todas as tarefas/designações relacionadas a esta atividade
+        tarefaRepository.deleteByAtividadeId(id);
         // Deleta o arquivo físico associado, se existir
         deleteArquivoFisico(atividade.getCaminhoArquivo());
         atividadeRepository.delete(atividade);
